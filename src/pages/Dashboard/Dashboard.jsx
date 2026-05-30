@@ -126,8 +126,6 @@ const Dashboard = () => {
         ))}
       </Grid>
 
-      </Grid>
-
       {/* Tables Row */}
       <Grid container spacing={3}>
         <Grid item xs={12} lg={7}>
