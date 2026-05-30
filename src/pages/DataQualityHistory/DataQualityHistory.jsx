@@ -310,8 +310,8 @@ function TimelineNode({ run, isLast, groupDate }) {
                         <Stack spacing={1}>
                           {python.failed_rules.map((fr, i) => (
                             <Box key={i} sx={{ p: 1, bgcolor: '#fee2e2', borderRadius: 1, border: '1px solid #fca5a5' }}>
-                              <Typography sx={{ fontSize: 12, fontWeight: 700, color: '#b91c1c' }}>{fr.rule}</Typography>
-                              <Typography sx={{ fontSize: 11, color: '#b91c1c' }}>{fr.reason}</Typography>
+                              <Typography sx={{ fontSize: 12, fontWeight: 700, color: '#b91c1c' }}>{typeof fr.rule === 'string' ? fr.rule : JSON.stringify(fr.rule)}</Typography>
+                              <Typography sx={{ fontSize: 11, color: '#b91c1c' }}>{Array.isArray(fr.reason) ? fr.reason.map(r => typeof r === 'string' ? r : JSON.stringify(r)).join('; ') : (typeof fr.reason === 'string' ? fr.reason : JSON.stringify(fr.reason))}</Typography>
                             </Box>
                           ))}
                         </Stack>
@@ -342,7 +342,9 @@ function TimelineNode({ run, isLast, groupDate }) {
                     {llm.recommendations.map((rec, i) => (
                       <Box key={i} sx={{ display: 'flex', gap: 1.5, alignItems: 'flex-start' }}>
                         <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: '#6366f1', mt: 1, flexShrink: 0 }} />
-                        <Typography sx={{ fontSize: 13.5, color: 'text.primary', fontWeight: 500 }}>{rec}</Typography>
+                        <Typography sx={{ fontSize: 13.5, color: 'text.primary', fontWeight: 500 }}>
+                          {typeof rec === 'string' ? rec : (rec.action ? `${rec.action} ${rec.reason || rec.column || ''}` : JSON.stringify(rec))}
+                        </Typography>
                       </Box>
                     ))}
                   </Stack>
