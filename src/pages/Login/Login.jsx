@@ -114,7 +114,8 @@ const Login = ({ open = true, onClose, onSuccess }) => {
               {loading ? 'Signing in...' : 'Sign In'}
             </Button>
             <Typography variant="caption" align="center" color="text.secondary">
-              Default credentials: <strong>admin / Admin@123</strong>
+              Personas: <strong>data_engineer, data_steward, business_analyst, compliance_officer, business_user</strong><br/>
+              Password for all: <strong>pass123</strong>
             </Typography>
           </Stack>
         </form>

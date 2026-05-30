@@ -16,26 +16,37 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import ShieldIcon from '@mui/icons-material/Shield';
 import DescriptionIcon from '@mui/icons-material/Description';
 import RuleIcon from '@mui/icons-material/Rule';
+import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
+import FormatListBulletedIcon from '@mui/icons-material/FormatListBulleted';
+import PlaylistAddCheckIcon from '@mui/icons-material/PlaylistAddCheck';
+import ManageHistoryIcon from '@mui/icons-material/ManageHistory';
 import { logout } from '../redux/slices/authSlice';
+import { useSelector } from 'react-redux';
 
 const drawerWidth = 240;
 
 const items = [
-  { label: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
-  { label: 'Connectors', icon: <HubIcon />, path: '/connectors' },
-  { label: 'Datasets', icon: <StorageIcon />, path: '/datasets' },
-  { label: 'Rule Books', icon: <DescriptionIcon />, path: '/rule-books' },
-  // { label: 'Monitoring', icon: <MonitorHeartIcon />, path: '/monitoring' },
-  { label: 'Data Quality History', icon: <RuleIcon />, path: '/data-quality-history' },
-  { label: 'Alerts', icon: <NotificationsActiveIcon />, path: '/alerts' },
-  { label: 'Notifications', icon: <NotificationsIcon />, path: '/notifications' },
-  { label: 'Settings', icon: <SettingsIcon />, path: '/settings' },
+  { label: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard', roles: ['all'] },
+  { label: 'Connectors', icon: <HubIcon />, path: '/connectors', roles: ['data_engineer'] },
+  { label: 'Datasets', icon: <StorageIcon />, path: '/datasets', roles: ['data_engineer', 'data_steward'] },
+  { label: 'Rule Books', icon: <DescriptionIcon />, path: '/rule-books', roles: ['business_analyst', 'data_steward'] },
+  { label: 'Data Quality History', icon: <RuleIcon />, path: '/data-quality-history', roles: ['data_steward'] },
+  { label: 'Technical Anomalies', icon: <FormatListBulletedIcon />, path: '/technical-anomalies', roles: ['data_steward'] },
+  { label: 'AI Business Rules', icon: <AutoFixHighIcon />, path: '/ai-business-rules', roles: ['business_analyst'] },
+  { label: 'Validation Results', icon: <PlaylistAddCheckIcon />, path: '/business-validation-results', roles: ['business_analyst', 'data_steward'] },
+  { label: 'Remediation Workflow', icon: <ManageHistoryIcon />, path: '/remediation-workflow', roles: ['compliance_officer', 'data_steward'] },
+  { label: 'Alerts', icon: <NotificationsActiveIcon />, path: '/alerts', roles: ['all'] },
+  { label: 'Notifications', icon: <NotificationsIcon />, path: '/notifications', roles: ['all'] },
+  { label: 'Settings', icon: <SettingsIcon />, path: '/settings', roles: ['all'] },
 ];
 
 const Sidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useDispatch();
+  const { user } = useSelector((state) => state.auth);
+
+  const userRole = user?.role || 'viewer';
 
   const handleLogout = () => {
     dispatch(logout());
@@ -67,7 +78,7 @@ const Sidebar = () => {
       <Divider />
       <Box sx={{ overflow: 'auto', flex: 1 }}>
         <List sx={{ px: 1 }}>
-          {items.map((item) => {
+          {items.filter(item => item.roles.includes('all') || item.roles.includes(userRole)).map((item) => {
             const selected = item.path === '/dashboard' 
               ? (location.pathname === '/dashboard' || location.pathname === '/')
               : location.pathname.startsWith(item.path);
