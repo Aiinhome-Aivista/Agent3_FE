@@ -396,7 +396,7 @@ const RuleBooks = () => {
             Business rule based knowledge
           </Typography>
           {(() => {
-            const approvedRules = (proposedRules || []).filter(r => r.status_name === 'approved' || r.status_id === 2);
+            const approvedRules = (proposedRules || []).filter(r => Number(r.status_id) === 2 || (r.status_name || '').toLowerCase().includes('approv'));
             if (approvedRules.length === 0) {
               return (
                 <Box sx={{ textAlign: 'center', py: 4 }}>
