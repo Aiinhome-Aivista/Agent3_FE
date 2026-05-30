@@ -128,6 +128,57 @@ export const deleteRuleFromRuleBook = createAsyncThunk(
   },
 );
 
+export const fetchProposedRules = createAsyncThunk(
+  "ruleBooks/fetchProposed",
+  async (_, { rejectWithValue }) => {
+    try {
+      const res = await api.get("/api/rule-books/proposed");
+      return res.data;
+    } catch (e) {
+      return rejectWithValue(
+        e.response?.data?.detail || "Failed to load proposed rules",
+      );
+    }
+  },
+);
+
+export const updateProposedRule = createAsyncThunk(
+  "ruleBooks/updateProposed",
+  async ({ ruleId, ruleText, statusId }, { rejectWithValue, dispatch }) => {
+    try {
+      await api.put(`/api/rule-books/proposed/${ruleId}`, {
+        rule_text: ruleText,
+        status_id: statusId
+      });
+      dispatch(fetchProposedRules());
+      return { ruleId };
+    } catch (e) {
+      return rejectWithValue(
+        e.response?.data?.detail || "Failed to update proposed rule",
+      );
+    }
+  },
+);
+
+export const createProposedRule = createAsyncThunk(
+  "ruleBooks/createProposed",
+  async ({ connectorId, ruleText, ruleType }, { rejectWithValue, dispatch }) => {
+    try {
+      await api.post("/api/rule-books/proposed", {
+        connector_id: connectorId,
+        rule_text: ruleText,
+        rule_type: ruleType
+      });
+      dispatch(fetchProposedRules());
+      return { success: true };
+    } catch (e) {
+      return rejectWithValue(
+        e.response?.data?.detail || "Failed to create proposed rule",
+      );
+    }
+  },
+);
+
 const slice = createSlice({
   name: "ruleBooks",
   initialState: {
@@ -138,6 +189,8 @@ const slice = createSlice({
     currentRuleBookRules: [],
     selectedRuleBook: null,
     selectedRuleBookLoading: false,
+    proposedRules: [],
+    proposedRulesLoading: false,
   },
   reducers: {
     clearSearchResults(state) {
@@ -178,6 +231,16 @@ const slice = createSlice({
       })
       .addCase(fetchRuleBookRules.fulfilled, (s, a) => {
         s.currentRuleBookRules = a.payload.rules;
+      })
+      .addCase(fetchProposedRules.pending, (s) => {
+        s.proposedRulesLoading = true;
+      })
+      .addCase(fetchProposedRules.fulfilled, (s, a) => {
+        s.proposedRulesLoading = false;
+        s.proposedRules = a.payload;
+      })
+      .addCase(fetchProposedRules.rejected, (s) => {
+        s.proposedRulesLoading = false;
       });
   },
 });

@@ -16,6 +16,11 @@ import Settings from '../pages/Settings/Settings';
 import RuleBooks from '../pages/RuleBooks/RuleBooks';
 import DataQualityHistory from '../pages/DataQualityHistory/DataQualityHistory';
 
+// New Pages for Personas
+import AnomalyReport from '../pages/AnomalyReport/AnomalyReport';
+import BusinessRuleGenerator from '../pages/BusinessRuleGenerator/BusinessRuleGenerator';
+import GapAnalysis from '../pages/GapAnalysis/GapAnalysis';
+
 const AppRoutes = () => {
   return (
     <Routes>
@@ -37,6 +42,9 @@ const AppRoutes = () => {
         <Route path="/alerts" element={<Alerts />} />
         <Route path="/notifications" element={<Notifications />} />
         <Route path="/settings" element={<Settings />} />
+        
+        {/* MUST HAVE Routes */}
+        <Route path="/business-rules" element={<BusinessRuleGenerator />} />
       </Route>
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>

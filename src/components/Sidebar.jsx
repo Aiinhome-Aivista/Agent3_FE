@@ -23,13 +23,13 @@ const drawerWidth = 240;
 const items = [
   { label: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
   { label: 'Connectors', icon: <HubIcon />, path: '/connectors' },
-  { label: 'Datasets', icon: <StorageIcon />, path: '/datasets' },
-  { label: 'Rule Books', icon: <DescriptionIcon />, path: '/rule-books' },
-  // { label: 'Monitoring', icon: <MonitorHeartIcon />, path: '/monitoring' },
+  { label: 'Dataset Insights', icon: <StorageIcon />, path: '/datasets' },
+  { label: 'Knowledge Base', icon: <DescriptionIcon />, path: '/rule-books' },
   { label: 'Data Quality History', icon: <RuleIcon />, path: '/data-quality-history' },
   { label: 'Alerts', icon: <NotificationsActiveIcon />, path: '/alerts' },
   { label: 'Notifications', icon: <NotificationsIcon />, path: '/notifications' },
   { label: 'Settings', icon: <SettingsIcon />, path: '/settings' },
+  { label: 'Business Rules (BA)', icon: <DescriptionIcon />, path: '/business-rules' },
 ];
 
 const Sidebar = () => {

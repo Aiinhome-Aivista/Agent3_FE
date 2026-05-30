@@ -62,7 +62,7 @@ const Header = () => {
     >
       <Toolbar>
         <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: 600 }}>
-          {title}
+          {/* Title removed per user request */}
         </Typography>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <ThemeToggle />

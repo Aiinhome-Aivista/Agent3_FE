@@ -161,7 +161,7 @@ const Datasets = () => {
         sx={{ mb: 3 }}
       >
         <Typography variant="h5" sx={{ fontWeight: 700 }}>
-          Datasets
+          Dataset Insights
         </Typography>
         <Stack direction="row" spacing={1}>
           <TextField
@@ -404,9 +404,32 @@ const Datasets = () => {
                           borderLeftColor: "primary.main",
                         }}
                       >
-                        {python.technical_summary ||
-                          llm.technical_summary ||
-                          "No technical summary available."}
+                        {typeof (python.technical_summary || llm.technical_summary) === 'string'
+                          ? (python.technical_summary || llm.technical_summary || "No technical summary available.")
+                          : JSON.stringify(python.technical_summary || llm.technical_summary)}
+                      </Typography>
+
+                      <Typography
+                        variant="body2"
+                        sx={{ fontWeight: 600, mb: 0.5 }}
+                      >
+                        Contextual Summary (AI Evaluation)
+                      </Typography>
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        sx={{
+                          mb: 2,
+                          p: 1.5,
+                          bgcolor: "grey.50",
+                          borderRadius: 1,
+                          border: "1px solid",
+                          borderColor: "divider",
+                        }}
+                      >
+                        {typeof llm.contextual_summary === 'string' 
+                          ? (llm.contextual_summary || "No contextual AI evaluation available.") 
+                          : JSON.stringify(llm.contextual_summary)}
                       </Typography>
 
                       <Typography
@@ -904,6 +927,53 @@ const Datasets = () => {
                         </Box>
                       )}
 
+                      {llm.failed_rules !== undefined && (
+                        <Box>
+                          <Typography
+                            variant="subtitle2"
+                            sx={{
+                              fontWeight: 700,
+                              mb: 1,
+                              color: llm.failed_rules.length > 0 ? "error.main" : "success.main",
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 1,
+                            }}
+                          >
+                            {llm.failed_rules.length > 0 ? (
+                              <><span role="img" aria-label="alert">⚠️</span> Business Rule Violations</>
+                            ) : (
+                              <><span role="img" aria-label="success">✅</span> Business Rules Evaluated</>
+                            )}
+                          </Typography>
+                          <Box
+                            sx={{
+                              p: 2,
+                              bgcolor: llm.failed_rules.length > 0 ? "error.50" : "success.50",
+                              borderRadius: 1,
+                              border: "1px solid",
+                              borderColor: llm.failed_rules.length > 0 ? "error.200" : "success.200",
+                            }}
+                          >
+                            {llm.failed_rules.length > 0 ? (
+                              <ul style={{ margin: 0, paddingLeft: "1.2rem", color: "#d32f2f" }}>
+                                {llm.failed_rules.map((violation, idx) => (
+                                  <li key={idx}>
+                                    <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                                      {violation.rule}: {violation.reason}
+                                    </Typography>
+                                  </li>
+                                ))}
+                              </ul>
+                            ) : (
+                              <Typography variant="body2" sx={{ fontWeight: 600, color: "success.dark" }}>
+                                Great! The data complies with all your approved business rules. No violations found.
+                              </Typography>
+                            )}
+                          </Box>
+                        </Box>
+                      )}
+
                       {(llm.recommendations?.length > 0 ||
                         python.findings?.length > 0) && (
                         <Box>
@@ -936,7 +1006,7 @@ const Datasets = () => {
                                       color="text.primary"
                                       sx={{ fontWeight: 500 }}
                                     >
-                                      {rec}
+                                      {typeof rec === 'string' ? rec : rec.action ? `${rec.action}: ${rec.reason || ''}` : JSON.stringify(rec)}
                                     </Typography>
                                   </li>
                                 ))}

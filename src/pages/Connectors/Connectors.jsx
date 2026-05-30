@@ -118,6 +118,7 @@ const Connectors = () => {
   const [editMode, setEditMode] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [name, setName] = useState("");
+  const [industryContext, setIndustryContext] = useState("");
   const [type, setType] = useState("mysql");
   const [config, setConfig] = useState({});
   const [savingError, setSavingError] = useState(null);
@@ -150,6 +151,7 @@ const Connectors = () => {
     setEditMode(false);
     setEditingId(null);
     setName("");
+    setIndustryContext("");
     setType("mysql");
     setConfig({});
     setSavingError(null);
@@ -162,6 +164,7 @@ const Connectors = () => {
     setEditMode(true);
     setEditingId(connector.id);
     setName(connector.name);
+    setIndustryContext(connector.industry_context || "");
     setType(connector.type);
     setConfig(connector.config || {});
     setSavingError(null);
@@ -209,7 +212,7 @@ const Connectors = () => {
   const handleTestDataset = async () => {
     setAssetTestError(null);
     setAssetTestSuccess(false);
-    
+
     if (!activeAsset) return;
     const creds = assetCreds[activeAsset.name]?.credentials || {};
     const res = await dispatch(testDatasetCredentials({
@@ -269,6 +272,11 @@ const Connectors = () => {
       }
     }
 
+    if (!industryContext.trim()) {
+      setSavingError("Industry Context is required");
+      return;
+    }
+
     const dataset_credentials = Object.entries(assetCreds).map(([name, data]) => {
       const asset = testResult?.preview?.datasets?.find(d => d.name === name);
       if (!asset) return null;
@@ -287,10 +295,10 @@ const Connectors = () => {
     let res;
     if (editMode) {
       res = await dispatch(
-        updateConnector({ id: editingId, name, type, config, dataset_credentials }),
+        updateConnector({ id: editingId, name, type, config, dataset_credentials, industry_context: industryContext }),
       );
     } else {
-      res = await dispatch(createConnector({ name, type, config, dataset_credentials }));
+      res = await dispatch(createConnector({ name, type, config, dataset_credentials, industry_context: industryContext }));
     }
 
     if (
@@ -302,9 +310,9 @@ const Connectors = () => {
     } else {
       setSavingError(
         res.payload ||
-          (editMode
-            ? "Failed to update connector"
-            : "Failed to create connector"),
+        (editMode
+          ? "Failed to update connector"
+          : "Failed to create connector"),
       );
     }
   };
@@ -501,10 +509,10 @@ const Connectors = () => {
         </CardContent>
       </Card>
 
-      <Dialog 
-        open={dialogOpen} 
-        onClose={closeDialog} 
-        maxWidth={testResult?.preview ? "md" : "sm"} 
+      <Dialog
+        open={dialogOpen}
+        onClose={closeDialog}
+        maxWidth={testResult?.preview ? "md" : "sm"}
         fullWidth
         PaperProps={{ sx: { bgcolor: "#ffffff" } }}
       >
@@ -534,6 +542,7 @@ const Connectors = () => {
                 </MenuItem>
               ))}
             </TextField>
+
             {fields.map((f) => (
               <TextField
                 key={f.key}
@@ -545,14 +554,24 @@ const Connectors = () => {
                 fullWidth
               />
             ))}
+            <TextField
+              label="Data Context"
+              value={industryContext}
+              onChange={(e) => setIndustryContext(e.target.value)}
+              placeholder="e.g., Provide details about your industry (Sales, Healthcare, etc.)"
+              multiline
+              rows={3}
+              fullWidth
+              required
+            />
             {testResult && (
               <Box>
                 <Alert severity={testResult.ok ? "success" : "error"} sx={{ mb: testResult.preview ? 2 : 0 }}>
                   {testResult.ok
                     ? testResult.details?.version || "Connection successful"
                     : testResult.error ||
-                      testResult.message ||
-                      "Connection failed"}
+                    testResult.message ||
+                    "Connection failed"}
                 </Alert>
 
                 {testResult.ok && testResult.preview && (
@@ -584,14 +603,14 @@ const Connectors = () => {
                                   const h = d.connection_hint || {};
                                   const tableName = h.table ? `${h.schema ? h.schema + '.' : ''}${h.table}` : null;
                                   const path = h.container ? `${h.container}${h.folder_path ? '/' + h.folder_path : ''}` : null;
-                                  
+
                                   return (
                                     <Stack direction="row" alignItems="center" spacing={0.5}>
                                       <Typography variant="inherit" sx={{ fontWeight: tableName ? 600 : 400 }}>
                                         {tableName || path || h.host || '-'}
                                       </Typography>
                                       {d.columns && d.columns.length > 0 && (
-                                        <Tooltip 
+                                        <Tooltip
                                           arrow
                                           title={
                                             <Box sx={{ p: 0.5 }}>
@@ -620,8 +639,8 @@ const Connectors = () => {
                               </TableCell>
                               <TableCell align="right" sx={{ py: 0.5 }}>
                                 {d.needs_credentials && (
-                                  <Button 
-                                    size="small" 
+                                  <Button
+                                    size="small"
                                     variant={assetCreds[d.name]?.tested ? "contained" : "outlined"}
                                     color={assetCreds[d.name]?.tested ? "success" : "primary"}
                                     onClick={() => openCredDialog(d)}
@@ -647,7 +666,7 @@ const Connectors = () => {
                       </Table>
                     </TableContainer>
                     <Typography variant="caption" sx={{ mt: 1, display: 'block', color: 'text.secondary', fontStyle: 'italic' }}>
-                      * Total { (testResult.preview.datasets?.length || 0) + (testResult.preview.pipelines?.length || 0) } items will be imported.
+                      * Total {(testResult.preview.datasets?.length || 0) + (testResult.preview.pipelines?.length || 0)} items will be imported.
                     </Typography>
                   </Box>
                 )}
@@ -671,16 +690,22 @@ const Connectors = () => {
             Test Connection
           </Button>
           <Button onClick={handleSave} variant="contained" disabled={loading}>
-            Save
+            {loading ? (
+              <>
+                <CircularProgress size={16} sx={{ mr: 1, color: "inherit" }} /> Reading ....
+              </>
+            ) : (
+              "Save"
+            )}
           </Button>
         </DialogActions>
       </Dialog>
 
       {/* Tier-2 Credential Sub-Dialog */}
-      <Dialog 
-        open={credDialogOpen} 
-        onClose={() => setCredDialogOpen(false)} 
-        maxWidth="xs" 
+      <Dialog
+        open={credDialogOpen}
+        onClose={() => setCredDialogOpen(false)}
+        maxWidth="xs"
         fullWidth
         PaperProps={{ sx: { borderRadius: 2, boxShadow: 24 } }}
       >
@@ -716,17 +741,17 @@ const Connectors = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setCredDialogOpen(false)} size="small">Cancel</Button>
-          <Button 
-            onClick={handleTestDataset} 
+          <Button
+            onClick={handleTestDataset}
             disabled={testDatasetLoading}
             size="small"
             startIcon={testDatasetLoading && <CircularProgress size={12} />}
           >
             Test
           </Button>
-          <Button 
-            onClick={() => setCredDialogOpen(false)} 
-            variant="contained" 
+          <Button
+            onClick={() => setCredDialogOpen(false)}
+            variant="contained"
             size="small"
             disabled={!activeAsset || !assetCreds[activeAsset.name]?.tested}
           >

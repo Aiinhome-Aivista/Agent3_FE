@@ -50,8 +50,8 @@ const features = [
     },
     {
         icon: <RuleIcon sx={{ fontSize: 36 }} />,
-        title: 'Rule Books & RAG',
-        desc: 'Plug your own validation rule books — indexed in ChromaDB and consulted during quality runs.',
+        title: 'Knowledge Base & RAG',
+        desc: 'Plug your own validation knowledge bases — indexed in ChromaDB and consulted during quality runs.',
         color: '#d97706',
     },
 ];

@@ -3,7 +3,8 @@ import { createTheme } from '@mui/material/styles'
 const common = {
   shape: { borderRadius: 10 },
   typography: {
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif',
+    fontFamily: '"Nunito", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif',
+    fontSize: 15,
     h6: { fontWeight: 600 },
     button: { textTransform: 'none', fontWeight: 600 },
   },

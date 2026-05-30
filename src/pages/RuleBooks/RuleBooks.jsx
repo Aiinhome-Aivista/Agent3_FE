@@ -50,6 +50,7 @@ import {
   deleteRuleFromRuleBook,
   clearCurrentRules,
   fetchRuleBookDetails,
+  fetchProposedRules,
 } from "../../redux/slices/ruleBookSlice";
 import Loader from "../../components/Loader";
 
@@ -91,6 +92,7 @@ const RuleBooks = () => {
     currentRuleBookRules,
     selectedRuleBook: reduxSelectedRuleBook,
     selectedRuleBookLoading,
+    proposedRules,
   } = useSelector((s) => s.ruleBooks);
 
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -98,6 +100,7 @@ const RuleBooks = () => {
   const [description, setDescription] = useState("");
   const [file, setFile] = useState(null);
   const [connectorType, setConnectorType] = useState("");
+  const [selectedApprovedRule, setSelectedApprovedRule] = useState(null);
   const [savingError, setSavingError] = useState(null);
   const [selectedRuleBook, setSelectedRuleBook] = useState(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -112,6 +115,7 @@ const RuleBooks = () => {
 
   useEffect(() => {
     dispatch(fetchRuleBooks());
+    dispatch(fetchProposedRules());
   }, [dispatch]);
 
   const openRuleBook = (rb) => {
@@ -190,12 +194,12 @@ const RuleBooks = () => {
     if (createRuleBook.fulfilled.match(res)) {
       closeDialog();
     } else {
-      setSavingError(res.payload || "Failed to create rule book");
+      setSavingError(res.payload || "Failed to create knowledge base");
     }
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm("Delete this rule book?")) return;
+    if (!window.confirm("Delete this knowledge base?")) return;
     await dispatch(deleteRuleBook(id));
   };
 
@@ -270,7 +274,7 @@ const RuleBooks = () => {
         sx={{ mb: 3 }}
       >
         <Typography variant="h5" sx={{ fontWeight: 700 }}>
-          Rule Books
+          Knowledge Base
         </Typography>
         <Stack direction="row" spacing={1}>
           <TextField
@@ -283,7 +287,7 @@ const RuleBooks = () => {
             onClick={openDialog}
             variant="contained"
           >
-            Add Rule Book
+            Add Knowledge Base
           </Button>
           <Button
             startIcon={<RefreshIcon />}
@@ -302,11 +306,11 @@ const RuleBooks = () => {
       <Card>
         <CardContent>
           {loading && (!list || list.length === 0) ? (
-            <Loader label="Loading rule books..." />
+            <Loader label="Loading knowledge base..." />
           ) : !list || list.length === 0 ? (
             <Box sx={{ textAlign: "center", py: 6 }}>
               <Typography color="text.secondary">
-                No rule books yet. Click "Add Rule Book" to create your first
+                No knowledge base yet. Click "Add Knowledge Base" to create your first
                 one.
               </Typography>
             </Box>
@@ -386,6 +390,115 @@ const RuleBooks = () => {
         </CardContent>
       </Card>
 
+      <Card sx={{ mt: 3 }}>
+        <CardContent>
+          <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
+            Business rule based knowledge
+          </Typography>
+          {(() => {
+            const approvedRules = (proposedRules || []).filter(r => r.status_name === 'approved' || r.status_id === 2);
+            if (approvedRules.length === 0) {
+              return (
+                <Box sx={{ textAlign: 'center', py: 4 }}>
+                  <Typography color="text.secondary" variant="body2">
+                    No approved business rules yet. Approved rules from the Business Rules (BA) page will appear here.
+                  </Typography>
+                </Box>
+              );
+            }
+            // Group by connector_name
+            const grouped = approvedRules.reduce((acc, r) => {
+              const key = r.connector_name || 'Unknown Connector';
+              if (!acc[key]) acc[key] = [];
+              acc[key].push(r);
+              return acc;
+            }, {});
+            return Object.entries(grouped).map(([connName, rules]) => (
+              <Box key={connName} sx={{ mb: 3 }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1, color: 'text.secondary', letterSpacing: '0.05em', textTransform: 'uppercase', fontSize: '11px' }}>
+                  {connName}
+                </Typography>
+                <Paper variant="outlined" sx={{ boxShadow: 'none' }}>
+                  <Table size="small">
+                    <TableHead>
+                      <TableRow>
+                        <TableCell sx={headerCellSx}><strong>Rule Type</strong></TableCell>
+                        <TableCell sx={headerCellSx}><strong>Rule</strong></TableCell>
+                        <TableCell sx={headerCellSx}><strong>Approved At</strong></TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {rules.map((r) => (
+                        <TableRow
+                          key={r.id}
+                          hover
+                          onClick={() => setSelectedApprovedRule(r)}
+                          sx={{ cursor: 'pointer' }}
+                        >
+                          <TableCell sx={bodyCellSx}>
+                            <Chip label={r.rule_type || 'custom'} size="small" color="primary" variant="outlined" />
+                          </TableCell>
+                          <TableCell sx={{ ...bodyCellSx, maxWidth: 400 }}>
+                            <Typography variant="body2" sx={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 380 }}>
+                              {r.rule_text}
+                            </Typography>
+                          </TableCell>
+                          <TableCell sx={bodyCellSx}>
+                            <Typography variant="caption">
+                              {r.updated_at ? new Date(r.updated_at).toLocaleString() : '-'}
+                            </Typography>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </Paper>
+              </Box>
+            ));
+          })()}
+        </CardContent>
+      </Card>
+
+      {/* Approved Rule Detail Dialog */}
+      <Dialog open={Boolean(selectedApprovedRule)} onClose={() => setSelectedApprovedRule(null)} maxWidth="sm" fullWidth>
+        <DialogTitle sx={{ fontWeight: 700 }}>
+          Business Rule Detail
+        </DialogTitle>
+        <DialogContent dividers>
+          {selectedApprovedRule && (
+            <Box>
+              <Stack spacing={2}>
+                <Box>
+                  <Typography variant="caption" color="text.secondary">Connector</Typography>
+                  <Typography variant="body1" sx={{ fontWeight: 600 }}>{selectedApprovedRule.connector_name || '-'}</Typography>
+                </Box>
+                <Box>
+                  <Typography variant="caption" color="text.secondary">Rule Type</Typography>
+                  <Box><Chip label={selectedApprovedRule.rule_type || 'custom'} size="small" color="primary" variant="outlined" /></Box>
+                </Box>
+                <Box>
+                  <Typography variant="caption" color="text.secondary">Rule Text</Typography>
+                  <Paper variant="outlined" sx={{ p: 2, mt: 0.5, bgcolor: 'background.default' }}>
+                    <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', fontFamily: 'monospace' }}>
+                      {selectedApprovedRule.rule_text}
+                    </Typography>
+                  </Paper>
+                </Box>
+                <Box>
+                  <Typography variant="caption" color="text.secondary">Approved At</Typography>
+                  <Typography variant="body2">
+                    {selectedApprovedRule.updated_at ? new Date(selectedApprovedRule.updated_at).toLocaleString() : '-'}
+                  </Typography>
+                </Box>
+              </Stack>
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setSelectedApprovedRule(null)} variant="outlined">Close</Button>
+        </DialogActions>
+      </Dialog>
+
       <Dialog 
         open={dialogOpen} 
         onClose={closeDialog} 
@@ -393,7 +506,7 @@ const RuleBooks = () => {
         fullWidth
         PaperProps={{ sx: { bgcolor: "#ffffff" } }}
       >
-        <DialogTitle>Upload Rule Book</DialogTitle>
+        <DialogTitle>Upload Knowledge Base</DialogTitle>
         <DialogContent dividers>
           {uploading ? (
             <Box
@@ -404,7 +517,7 @@ const RuleBooks = () => {
                 minHeight: 300,
               }}
             >
-              <Loader label="Uploading rule book..." />
+              <Loader label="Uploading knowledge base..." />
             </Box>
           ) : (
             <Stack spacing={2} sx={{ mt: 1 }}>
@@ -440,7 +553,7 @@ const RuleBooks = () => {
               {/* File Upload with Drag & Drop */}
               <Box>
                 <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
-                  Upload Rule Book File (.txt only)
+                  Upload Knowledge Base File (.txt only)
                 </Typography>
                 <Box
                   onDragEnter={handleDrag}
@@ -542,7 +655,7 @@ const RuleBooks = () => {
             sx={{ mb: 3 }}
           >
             <Typography variant="h6" sx={{ fontWeight: 700 }}>
-              Rule Book Details
+              Knowledge Base Details
             </Typography>
             <IconButton onClick={closeDrawer}>
               <CloseIcon />
@@ -552,7 +665,7 @@ const RuleBooks = () => {
             <Stack spacing={2}>
               <Box>
                 <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
-                  Rule Book Name
+                  Knowledge Base Name
                 </Typography>
                 <Typography variant="body2">
                   {selectedRuleBook.rulebook_name}
@@ -609,7 +722,7 @@ const RuleBooks = () => {
             </Stack>
           ) : (
             <Typography color="text.secondary">
-              No rule book selected
+              No knowledge base selected
             </Typography>
           )}
         </Box>
