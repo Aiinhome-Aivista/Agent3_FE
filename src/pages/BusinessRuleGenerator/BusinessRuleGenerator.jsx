@@ -3,7 +3,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import {
   Box, Typography, Paper, Table, TableBody, TableCell,
   TableHead, TableRow, Button, TextField, Chip, CircularProgress,
-  IconButton, MenuItem, Dialog, DialogTitle, DialogContent, DialogActions
+  IconButton, MenuItem, Dialog, DialogTitle, DialogContent, DialogActions,
+  ToggleButtonGroup, ToggleButton
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import SaveIcon from '@mui/icons-material/Save';
@@ -18,6 +19,7 @@ const BusinessRuleGenerator = () => {
   const [editingId, setEditingId] = useState(null);
   const [editText, setEditText] = useState('');
   const [selectedConnector, setSelectedConnector] = useState('');
+  const [updatingRuleId, setUpdatingRuleId] = useState(null);
 
   // Add rule modal state
   const [openAddModal, setOpenAddModal] = useState(false);
@@ -37,20 +39,25 @@ const BusinessRuleGenerator = () => {
     }
   }, [connectors, selectedConnector]);
 
-  // Helper to parse rule_text if it was accidentally saved as JSON string
-  const getRuleText = (rawText) => {
-    if (!rawText) return '';
-    let text = rawText;
-    try {
-      if (rawText.startsWith('{') && rawText.includes('rule_text')) {
+  // Helper to parse JSON formatted rules
+  const parseRuleJson = (rawText) => {
+    let name = '';
+    let desc = rawText;
+    
+    if (rawText && rawText.startsWith('{')) {
+      try {
         const parsed = JSON.parse(rawText);
-        text = parsed.rule_text || rawText;
+        name = parsed.rule_name || '';
+        desc = parsed.description || parsed.rule_text || rawText;
+      } catch (e) {
+        // Not JSON
       }
-    } catch (e) {
-      // Not JSON, return as is
     }
-    // Remove {} and "" as requested
-    return text.replace(/[{}]/g, '').replace(/"/g, '');
+    
+    if (typeof desc === 'string') {
+      desc = desc.replace(/[{}]/g, '').replace(/"/g, '');
+    }
+    return { name, desc };
   };
 
   const filteredRules = proposedRules?.filter(r => r.connector_name === selectedConnector) || [];
@@ -58,7 +65,7 @@ const BusinessRuleGenerator = () => {
 
   const handleEditClick = (rule) => {
     setEditingId(rule.id);
-    setEditText(getRuleText(rule.rule_text));
+    setEditText(parseRuleJson(rule.rule_text).desc);
   };
 
   const handleCancelEdit = () => {
@@ -77,12 +84,19 @@ const BusinessRuleGenerator = () => {
     setEditingId(null);
   };
 
-  const handleStatusChange = (rule, newStatusId) => {
-    dispatch(updateProposedRule({
-      ruleId: rule.id,
-      ruleText: rule.rule_text,
-      statusId: newStatusId
-    }));
+  const handleStatusChange = async (rule, newStatusId) => {
+    setUpdatingRuleId(rule.id);
+    try {
+      await dispatch(updateProposedRule({
+        ruleId: rule.id,
+        ruleText: rule.rule_text,
+        statusId: newStatusId
+      })).unwrap();
+    } catch (e) {
+      console.error("Failed to update status", e);
+    } finally {
+      setUpdatingRuleId(null);
+    }
   };
 
   const getStatusColor = (statusName) => {
@@ -161,8 +175,9 @@ const BusinessRuleGenerator = () => {
             <Table>
               <TableHead>
                 <TableRow>
-                  <TableCell width="15%">Type</TableCell>
-                  <TableCell width="55%">Rule Logic</TableCell>
+                  <TableCell width="15%">Category</TableCell>
+                  <TableCell width="25%">Rule Name</TableCell>
+                  <TableCell width="30%">Rule</TableCell>
                   <TableCell width="10%">Status</TableCell>
                   <TableCell width="20%">Actions</TableCell>
                 </TableRow>
@@ -171,7 +186,16 @@ const BusinessRuleGenerator = () => {
                 {filteredRules.map(rule => (
                   <TableRow key={rule.id}>
                     <TableCell>
-                      <Chip size="small" label={rule.rule_type} />
+                      {rule.rule_type?.toLowerCase().includes('business') ? (
+                        <Chip size="small" label="Business Rule" color="secondary" variant="outlined" sx={{ fontWeight: 'bold' }} />
+                      ) : (
+                        <Chip size="small" label="Technical Rule" color="primary" variant="outlined" sx={{ fontWeight: 'bold' }} />
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                        {parseRuleJson(rule.rule_text).name || rule.rule_type}
+                      </Typography>
                     </TableCell>
 
                     <TableCell>
@@ -184,7 +208,7 @@ const BusinessRuleGenerator = () => {
                           onChange={(e) => setEditText(e.target.value)}
                         />
                       ) : (
-                        <Typography variant="body2">{getRuleText(rule.rule_text)}</Typography>
+                        <Typography variant="body2">{parseRuleJson(rule.rule_text).desc}</Typography>
                       )}
                     </TableCell>
 
@@ -204,14 +228,31 @@ const BusinessRuleGenerator = () => {
                         </Box>
                       ) : (
                         <Box display="flex" gap={1} alignItems="center">
-                          <IconButton size="small" onClick={() => handleEditClick(rule)}>
+                          <IconButton size="small" onClick={() => handleEditClick(rule)} disabled={updatingRuleId === rule.id}>
                             <EditIcon fontSize="small" />
                           </IconButton>
-                          {rule.status_name?.toLowerCase() !== 'approved' && (
-                            <Button size="small" variant="outlined" color="success" onClick={() => handleStatusChange(rule, 2)}>Approve</Button>
-                          )}
-                          {rule.status_name?.toLowerCase() !== 'rejected' && (
-                            <Button size="small" variant="outlined" color="error" onClick={() => handleStatusChange(rule, 3)}>Reject</Button>
+                          {updatingRuleId === rule.id ? (
+                            <CircularProgress size={24} sx={{ ml: 2 }} />
+                          ) : (
+                            <ToggleButtonGroup
+                              value={rule.status_name?.toLowerCase()}
+                              exclusive
+                              onChange={(e, newVal) => {
+                                if (newVal && newVal !== rule.status_name?.toLowerCase()) {
+                                  if (newVal === 'approved') handleStatusChange(rule, 2);
+                                  else if (newVal === 'rejected') handleStatusChange(rule, 3);
+                                }
+                              }}
+                              size="small"
+                              sx={{ ml: 1 }}
+                            >
+                              <ToggleButton value="approved" color="success">
+                                Approve
+                              </ToggleButton>
+                              <ToggleButton value="rejected" color="error">
+                                Reject
+                              </ToggleButton>
+                            </ToggleButtonGroup>
                           )}
                         </Box>
                       )}

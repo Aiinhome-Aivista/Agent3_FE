@@ -28,6 +28,7 @@ import {
   AccordionDetails,
   Pagination,
   Tooltip,
+  Snackbar,
 } from "@mui/material";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import CloseIcon from "@mui/icons-material/Close";
@@ -62,6 +63,9 @@ const Datasets = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [page, setPage] = useState(1);
   const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
+  const [analyzingRowId, setAnalyzingRowId] = useState(null);
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [scanningDataset, setScanningDataset] = useState(null);
 
   const applyFilters = (newFilters) => {
     const params = {};
@@ -100,13 +104,28 @@ const Datasets = () => {
     setPage(value);
   };
 
-  const openProfile = (d) => {
-    dispatch(fetchDatasetProfile(d.id));
-    setDrawerOpen(true);
+  const openProfile = async (d) => {
+    if (d.is_scanning) {
+      setScanningDataset(d);
+      setDrawerOpen(true);
+      return;
+    }
+    
+    setScanningDataset(null);
+    setAnalyzingRowId(d.id);
+    try {
+      await dispatch(fetchDatasetProfile(d.id)).unwrap();
+      setDrawerOpen(true);
+    } catch (e) {
+      console.error("Failed to load profile", e);
+    } finally {
+      setAnalyzingRowId(null);
+    }
   };
 
   const closeProfile = () => {
     setDrawerOpen(false);
+    setScanningDataset(null);
     dispatch(clearProfile());
   };
 
@@ -207,6 +226,7 @@ const Datasets = () => {
                 onRowClick={openProfile}
                 sortConfig={sortConfig}
                 onSort={handleSort}
+                analyzingRowId={analyzingRowId}
               />
               {sortedDatasets.length > ITEMS_PER_PAGE && (
                 <Box sx={{ display: "flex", justifyContent: "center", mt: 3 }}>
@@ -222,6 +242,17 @@ const Datasets = () => {
           )}
         </CardContent>
       </Card>
+
+      <Snackbar 
+        open={snackbarOpen} 
+        autoHideDuration={4000} 
+        onClose={() => setSnackbarOpen(false)} 
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert onClose={() => setSnackbarOpen(false)} severity="info" sx={{ width: '100%' }}>
+          Analysis is currently running in the background. Please wait a moment.
+        </Alert>
+      </Snackbar>
 
       <Drawer
         anchor="right"
@@ -245,8 +276,18 @@ const Datasets = () => {
               <CloseIcon />
             </IconButton>
           </Stack>
-          {!profile ? (
+          {!profile && !scanningDataset ? (
             <Loader label="Loading..." />
+          ) : scanningDataset ? (
+            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '60vh', textAlign: 'center' }}>
+               <CircularProgress size={60} sx={{ color: "#f59e0b", mb: 3 }} />
+               <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.secondary' }}>
+                 Analyzing Dataset: {scanningDataset.dataset_name}
+               </Typography>
+               <Typography variant="body2" sx={{ color: 'text.disabled', mt: 1, maxWidth: 400 }}>
+                 Please wait while AI performs data quality and business rule checks.
+               </Typography>
+            </Box>
           ) : (
             <Box>
               {/* Header Info */}

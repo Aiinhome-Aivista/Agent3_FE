@@ -18,8 +18,9 @@ import LightbulbIcon from "@mui/icons-material/Lightbulb";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import UnfoldMoreIcon from "@mui/icons-material/UnfoldMore";
+import CircularProgress from "@mui/material/CircularProgress";
 
-const DatasetTable = ({ datasets = [], onRowClick, sortConfig, onSort }) => {
+const DatasetTable = ({ datasets = [], onRowClick, sortConfig, onSort, analyzingRowId }) => {
   if (!datasets || datasets.length === 0) {
     return (
       <Box sx={{ p: 4, textAlign: "center" }}>

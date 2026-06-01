@@ -24,6 +24,7 @@ import {
   Alert,
   Tooltip,
   CircularProgress,
+  InputAdornment,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import RefreshIcon from "@mui/icons-material/Refresh";
@@ -31,6 +32,8 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import WifiTetheringIcon from "@mui/icons-material/WifiTethering";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
+import Visibility from "@mui/icons-material/Visibility";
+import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import {
@@ -129,6 +132,8 @@ const Connectors = () => {
   const [assetCreds, setAssetCreds] = useState({}); // { assetName: { credentials: { field: value }, tested: boolean } }
   const [assetTestError, setAssetTestError] = useState(null);
   const [assetTestSuccess, setAssetTestSuccess] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showAssetPassword, setShowAssetPassword] = useState({});
   const fields = TYPE_FIELDS[type] || [];
   // const fields = TYPE_FIELDS[type] || [];
 
@@ -158,6 +163,7 @@ const Connectors = () => {
     dispatch(clearTestResult());
     setDialogOpen(true);
     setAssetCreds({});
+    setShowPassword(false);
   };
 
   const openEditDialog = (connector) => {
@@ -171,6 +177,7 @@ const Connectors = () => {
     dispatch(clearTestResult());
     setDialogOpen(true);
     setAssetCreds({});
+    setShowPassword(false);
   };
 
   const closeDialog = () => {
@@ -243,7 +250,11 @@ const Connectors = () => {
 
   const handleTestNew = async () => {
     setSavingError(null);
-    await dispatch(testConnection({ type, config }));
+    const payload = { type, config };
+    if (editMode && editingId) {
+      payload.connector_id = editingId;
+    }
+    await dispatch(testConnection(payload));
   };
   const filteredConnectors = (list || []).filter((c) => {
     const q = search.trim().toLowerCase();
@@ -549,9 +560,22 @@ const Connectors = () => {
                 label={f.label + (f.required ? " *" : "")}
                 value={config[f.key] || ""}
                 onChange={(e) => updateField(f.key, e.target.value)}
-                type={f.secret ? "password" : "text"}
+                type={f.secret ? (showPassword ? "text" : "password") : "text"}
                 placeholder={f.placeholder || ""}
                 fullWidth
+                InputProps={f.secret ? {
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        aria-label="toggle password visibility"
+                        onClick={() => setShowPassword(!showPassword)}
+                        edge="end"
+                      >
+                        {showPassword ? <VisibilityOff /> : <Visibility />}
+                      </IconButton>
+                    </InputAdornment>
+                  )
+                } : undefined}
               />
             ))}
             <TextField
@@ -719,17 +743,35 @@ const Connectors = () => {
         </DialogTitle>
         <DialogContent dividers>
           <Stack spacing={2} sx={{ mt: 1 }}>
-            {activeAsset?.required_fields?.map((field) => (
-              <TextField
-                key={field}
-                label={field.charAt(0).toUpperCase() + field.slice(1).replace('_', ' ')}
-                fullWidth
-                size="small"
-                type={field.includes('password') || field.includes('key') || field.includes('token') || field.includes('secret') ? "password" : "text"}
-                value={activeAsset ? (assetCreds[activeAsset.name]?.credentials?.[field] || "") : ""}
-                onChange={(e) => updateAssetCred(field, e.target.value)}
-              />
-            ))}
+            {activeAsset?.required_fields?.map((field) => {
+              const isSecret = field.includes('password') || field.includes('key') || field.includes('token') || field.includes('secret');
+              const isVisible = showAssetPassword[field];
+              return (
+                <TextField
+                  key={field}
+                  label={field.charAt(0).toUpperCase() + field.slice(1).replace('_', ' ')}
+                  fullWidth
+                  size="small"
+                  type={isSecret ? (isVisible ? "text" : "password") : "text"}
+                  value={activeAsset ? (assetCreds[activeAsset.name]?.credentials?.[field] || "") : ""}
+                  onChange={(e) => updateAssetCred(field, e.target.value)}
+                  InputProps={isSecret ? {
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          aria-label="toggle password visibility"
+                          onClick={() => setShowAssetPassword(prev => ({ ...prev, [field]: !prev[field] }))}
+                          edge="end"
+                          size="small"
+                        >
+                          {isVisible ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
+                        </IconButton>
+                      </InputAdornment>
+                    )
+                  } : undefined}
+                />
+              );
+            })}
             {assetTestError && <Alert severity="error" sx={{ py: 0, fontSize: '0.75rem' }}>{assetTestError}</Alert>}
             {assetTestSuccess && <Alert severity="success" sx={{ py: 0, fontSize: '0.75rem' }}>Connection successful!</Alert>}
             {(!activeAsset?.required_fields || activeAsset.required_fields.length === 0) && (
