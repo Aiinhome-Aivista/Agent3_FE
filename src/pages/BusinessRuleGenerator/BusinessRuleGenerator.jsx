@@ -40,15 +40,17 @@ const BusinessRuleGenerator = () => {
   // Helper to parse rule_text if it was accidentally saved as JSON string
   const getRuleText = (rawText) => {
     if (!rawText) return '';
+    let text = rawText;
     try {
       if (rawText.startsWith('{') && rawText.includes('rule_text')) {
         const parsed = JSON.parse(rawText);
-        return parsed.rule_text || rawText;
+        text = parsed.rule_text || rawText;
       }
     } catch (e) {
       // Not JSON, return as is
     }
-    return rawText;
+    // Remove {} and "" as requested
+    return text.replace(/[{}]/g, '').replace(/"/g, '');
   };
 
   const filteredRules = proposedRules?.filter(r => r.connector_name === selectedConnector) || [];

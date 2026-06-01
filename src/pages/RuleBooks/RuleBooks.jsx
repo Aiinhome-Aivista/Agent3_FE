@@ -105,6 +105,25 @@ const RuleBooks = () => {
   const [selectedRuleBook, setSelectedRuleBook] = useState(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [searching, setSearching] = useState(null);
+
+  // Helper to format rule_text (removes {} and "")
+  const formatRuleText = (rawText) => {
+    if (!rawText) return '-';
+    try {
+      // If it looks like JSON, try to extract value
+      if (rawText.startsWith('{')) {
+        const parsed = JSON.parse(rawText);
+        // If it's an object with a single value, use it, else stringify and clean
+        const values = Object.values(parsed);
+        if (values.length === 1) return String(values[0]);
+        // Otherwise, just fall through to the clean replace
+      }
+    } catch (e) {
+      // Not JSON or parse error, just clean
+    }
+    return rawText.replace(/[{}]/g, '').replace(/"/g, '');
+  };
+
   const [addRuleDialogOpen, setAddRuleDialogOpen] = useState(false);
   const [newRuleName, setNewRuleName] = useState("");
   const [newRuleType, setNewRuleType] = useState("null_check");
@@ -248,7 +267,7 @@ const RuleBooks = () => {
     }
   };
 
-   // Shared header cell style
+  // Shared header cell style
   const headerCellSx = {
     fontSize: "20px",       // 14px — clearly larger than default small
     fontWeight: 700,
@@ -440,7 +459,7 @@ const RuleBooks = () => {
                           </TableCell>
                           <TableCell sx={{ ...bodyCellSx, maxWidth: 400 }}>
                             <Typography variant="body2" sx={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 380 }}>
-                              {r.rule_text}
+                              {formatRuleText(r.rule_text)}
                             </Typography>
                           </TableCell>
                           <TableCell sx={bodyCellSx}>
@@ -480,7 +499,7 @@ const RuleBooks = () => {
                   <Typography variant="caption" color="text.secondary">Rule Text</Typography>
                   <Paper variant="outlined" sx={{ p: 2, mt: 0.5, bgcolor: 'background.default' }}>
                     <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', fontFamily: 'monospace' }}>
-                      {selectedApprovedRule.rule_text}
+                      {formatRuleText(selectedApprovedRule.rule_text)}
                     </Typography>
                   </Paper>
                 </Box>
@@ -499,10 +518,10 @@ const RuleBooks = () => {
         </DialogActions>
       </Dialog>
 
-      <Dialog 
-        open={dialogOpen} 
-        onClose={closeDialog} 
-        maxWidth="sm" 
+      <Dialog
+        open={dialogOpen}
+        onClose={closeDialog}
+        maxWidth="sm"
         fullWidth
         PaperProps={{ sx: { bgcolor: "#ffffff" } }}
       >
@@ -688,8 +707,8 @@ const RuleBooks = () => {
                 <Typography variant="body2">
                   {selectedRuleBook.created_at
                     ? new Date(
-                        selectedRuleBook.created_at,
-                      ).toLocaleString()
+                      selectedRuleBook.created_at,
+                    ).toLocaleString()
                     : "-"}
                 </Typography>
               </Box>
