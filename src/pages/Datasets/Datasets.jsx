@@ -968,52 +968,63 @@ const Datasets = () => {
                         </Box>
                       )}
 
-                      {llm.failed_rules !== undefined && (
-                        <Box>
-                          <Typography
-                            variant="subtitle2"
-                            sx={{
-                              fontWeight: 700,
-                              mb: 1,
-                              color: llm.failed_rules.length > 0 ? "error.main" : "success.main",
-                              display: "flex",
-                              alignItems: "center",
-                              gap: 1,
-                            }}
-                          >
-                            {llm.failed_rules.length > 0 ? (
-                              <><span role="img" aria-label="alert">⚠️</span> Business Rule Violations</>
-                            ) : (
-                              <><span role="img" aria-label="success">✅</span> Business Rules Evaluated</>
-                            )}
-                          </Typography>
-                          <Box
-                            sx={{
-                              p: 2,
-                              bgcolor: llm.failed_rules.length > 0 ? "error.50" : "success.50",
-                              borderRadius: 1,
-                              border: "1px solid",
-                              borderColor: llm.failed_rules.length > 0 ? "error.200" : "success.200",
-                            }}
-                          >
-                            {llm.failed_rules.length > 0 ? (
-                              <ul style={{ margin: 0, paddingLeft: "1.2rem", color: "#d32f2f" }}>
-                                {llm.failed_rules.map((violation, idx) => (
-                                  <li key={idx}>
-                                    <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                                      {violation.rule}: {violation.reason}
-                                    </Typography>
-                                  </li>
-                                ))}
-                              </ul>
-                            ) : (
-                              <Typography variant="body2" sx={{ fontWeight: 600, color: "success.dark" }}>
-                                Great! The data complies with all your approved business rules. No violations found.
-                              </Typography>
-                            )}
+                      {(() => {
+                        const combinedFailedRules = [
+                          ...(llm.failed_rules || []),
+                          ...(python.failed_rules || [])
+                        ];
+                        const hasFailedRules = combinedFailedRules.length > 0;
+                        const totalEvaluated = (llm.failed_rules?.length || 0) + (python.failed_rules?.length || 0) + (llm.passed_rules?.length || 0) + (python.passed_rules?.length || 0) > 0;
+
+                        if (!totalEvaluated && !hasFailedRules) return null;
+
+                        return (
+                          <Box>
+                            <Typography
+                              variant="subtitle2"
+                              sx={{
+                                fontWeight: 700,
+                                mb: 1,
+                                color: hasFailedRules ? "error.main" : "success.main",
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 1,
+                              }}
+                            >
+                              {hasFailedRules ? (
+                                <><span role="img" aria-label="alert">⚠️</span> Rule Violations (Business & Technical)</>
+                              ) : (
+                                <><span role="img" aria-label="success">✅</span> Rules Evaluated</>
+                              )}
+                            </Typography>
+                            <Box
+                              sx={{
+                                p: 2,
+                                bgcolor: hasFailedRules ? "error.50" : "success.50",
+                                borderRadius: 1,
+                                border: "1px solid",
+                                borderColor: hasFailedRules ? "error.200" : "success.200",
+                              }}
+                            >
+                              {hasFailedRules ? (
+                                <ul style={{ margin: 0, paddingLeft: "1.2rem", color: "#d32f2f" }}>
+                                  {combinedFailedRules.map((violation, idx) => (
+                                    <li key={idx}>
+                                      <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                                        {violation.rule || violation.rule_type || "Rule"}: {violation.reason || violation.details}
+                                      </Typography>
+                                    </li>
+                                  ))}
+                                </ul>
+                              ) : (
+                                <Typography variant="body2" sx={{ fontWeight: 600, color: "success.dark" }}>
+                                  Great! The data complies with all your approved business and technical rules. No violations found.
+                                </Typography>
+                              )}
+                            </Box>
                           </Box>
-                        </Box>
-                      )}
+                        );
+                      })()}
 
                       {(llm.recommendations?.length > 0 ||
                         python.findings?.length > 0) && (

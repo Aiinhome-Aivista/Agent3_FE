@@ -106,22 +106,24 @@ const RuleBooks = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [searching, setSearching] = useState(null);
 
-  // Helper to format rule_text (removes {} and "")
   const formatRuleText = (rawText) => {
     if (!rawText) return '-';
     try {
-      // If it looks like JSON, try to extract value
-      if (rawText.startsWith('{')) {
+      if (rawText.trim().startsWith('{')) {
         const parsed = JSON.parse(rawText);
-        // If it's an object with a single value, use it, else stringify and clean
+        if (parsed.rule_description) return parsed.rule_description;
+        if (parsed.rule_name) return parsed.rule_name;
+        if (parsed.rule) return parsed.rule;
         const values = Object.values(parsed);
-        if (values.length === 1) return String(values[0]);
-        // Otherwise, just fall through to the clean replace
+        if (values.length > 0) return String(values[0]);
       }
     } catch (e) {
       // Not JSON or parse error, just clean
     }
-    return rawText.replace(/[{}]/g, '').replace(/"/g, '');
+    let clean = rawText.replace(/[{}]/g, '').replace(/"/g, '').trim();
+    // Remove common prefixes if they exist
+    clean = clean.replace(/^(rule_name\s*:|rule_description\s*:|rule\s*:|description\s*:)/i, '').trim();
+    return clean;
   };
 
   const [addRuleDialogOpen, setAddRuleDialogOpen] = useState(false);
@@ -458,9 +460,21 @@ const RuleBooks = () => {
                             <Chip label={r.rule_type || 'custom'} size="small" color="primary" variant="outlined" />
                           </TableCell>
                           <TableCell sx={{ ...bodyCellSx, maxWidth: 400 }}>
-                            <Typography variant="body2" sx={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 380 }}>
-                              {formatRuleText(r.rule_text)}
-                            </Typography>
+                            {(() => {
+                              const text = formatRuleText(r.rule_text);
+                              const isTruncated = text.length > 55;
+                              return isTruncated ? (
+                                <Tooltip title={text} arrow placement="top">
+                                  <Typography variant="body2" sx={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 380 }}>
+                                    {text}
+                                  </Typography>
+                                </Tooltip>
+                              ) : (
+                                <Typography variant="body2" sx={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 380 }}>
+                                  {text}
+                                </Typography>
+                              );
+                            })()}
                           </TableCell>
                           <TableCell sx={bodyCellSx}>
                             <Typography variant="caption">
