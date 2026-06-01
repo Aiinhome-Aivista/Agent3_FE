@@ -716,7 +716,7 @@ const Connectors = () => {
           <Button onClick={handleSave} variant="contained" disabled={loading}>
             {loading ? (
               <>
-                <CircularProgress size={16} sx={{ mr: 1, color: "inherit" }} /> Reading ....
+                <CircularProgress size={16} sx={{ mr: 1, color: "inherit" }} /> Saving....
               </>
             ) : (
               "Save"
