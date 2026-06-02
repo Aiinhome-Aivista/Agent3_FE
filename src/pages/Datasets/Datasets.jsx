@@ -285,25 +285,31 @@ const Datasets = () => {
         open={drawerOpen}
         onClose={closeProfile}
         PaperProps={{
-          sx: { width: { xs: "100%", md: 720 }, bgcolor: "#ffffff" },
+          sx: { width: { xs: "100%", md: 720 }, bgcolor: "#ffffff", display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" },
         }}
       >
-        <Box sx={{ p: 3 }}>
-          <Stack
-            direction="row"
-            justifyContent="space-between"
-            alignItems="center"
-            sx={{ mb: 2 }}
-          >
-            <Typography variant="h6" sx={{ fontWeight: 700 }}>
-              Dataset Profile
-            </Typography>
-            <IconButton onClick={closeProfile}>
-              <CloseIcon />
-            </IconButton>
-          </Stack>
+        <Box
+          sx={{
+            p: 3,
+            pb: 2,
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            borderBottom: "1px solid",
+            borderColor: "divider",
+            bgcolor: "#ffffff",
+          }}
+        >
+          <Typography variant="h6" sx={{ fontWeight: 700 }}>
+            Dataset Profile
+          </Typography>
+          <IconButton onClick={closeProfile}>
+            <CloseIcon />
+          </IconButton>
+        </Box>
+        <Box sx={{ p: 3, pt: 2, overflowY: "auto", flex: 1 }}>
           {profileLoading || (!profile && !scanningDataset) ? (
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 'calc(100vh - 120px)' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', minHeight: '300px' }}>
               <Loader label="Loading profile..." />
             </Box>
           ) : scanningDataset ? (
