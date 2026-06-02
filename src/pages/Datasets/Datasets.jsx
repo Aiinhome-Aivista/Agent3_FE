@@ -66,11 +66,20 @@ const Datasets = () => {
   const [analyzingRowId, setAnalyzingRowId] = useState(null);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [scanningDataset, setScanningDataset] = useState(null);
+  const [profileLoading, setProfileLoading] = useState(false);
 
   const applyFilters = (newFilters) => {
     const params = {};
     if (newFilters.connector_id) params.connector_id = newFilters.connector_id;
     if (newFilters.q) params.q = newFilters.q;
+    dispatch(fetchDatasets(params));
+    setPage(1);
+  };
+
+  const handleRefresh = () => {
+    const params = {};
+    if (filters.connector_id) params.connector_id = filters.connector_id;
+    if (filters.q) params.q = filters.q;
     dispatch(fetchDatasets(params));
     setPage(1);
   };
@@ -105,27 +114,30 @@ const Datasets = () => {
   };
 
   const openProfile = async (d) => {
+    dispatch(clearProfile());
+    setDrawerOpen(true); // open drawer immediately
+
     if (d.is_scanning) {
       setScanningDataset(d);
-      setDrawerOpen(true);
+      setProfileLoading(false);
       return;
     }
-    
+
     setScanningDataset(null);
-    setAnalyzingRowId(d.id);
+    setProfileLoading(true);
     try {
       await dispatch(fetchDatasetProfile(d.id)).unwrap();
-      setDrawerOpen(true);
     } catch (e) {
       console.error("Failed to load profile", e);
     } finally {
-      setAnalyzingRowId(null);
+      setProfileLoading(false);
     }
   };
 
   const closeProfile = () => {
     setDrawerOpen(false);
     setScanningDataset(null);
+    setProfileLoading(false);
     dispatch(clearProfile());
   };
 
@@ -208,10 +220,24 @@ const Datasets = () => {
             ))}
           </TextField> */}
           <Button
-            startIcon={<RefreshIcon />}
-            onClick={() => dispatch(fetchDatasets(filters))}
+            startIcon={
+              loading ? (
+                <RefreshIcon
+                  sx={{
+                    animation: "spin 0.8s linear infinite",
+                    "@keyframes spin": { from: { transform: "rotate(0deg)" }, to: { transform: "rotate(360deg)" } },
+                  }}
+                />
+              ) : (
+                <RefreshIcon />
+              )
+            }
+            onClick={handleRefresh}
             variant="outlined"
-          ></Button>
+            disabled={loading}
+          >
+            {loading ? "" : ""}
+          </Button>
         </Stack>
       </Stack>
 
@@ -276,8 +302,10 @@ const Datasets = () => {
               <CloseIcon />
             </IconButton>
           </Stack>
-          {!profile && !scanningDataset ? (
-            <Loader label="Loading..." />
+          {profileLoading || (!profile && !scanningDataset) ? (
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 'calc(100vh - 120px)' }}>
+              <Loader label="Loading profile..." />
+            </Box>
           ) : scanningDataset ? (
             <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '60vh', textAlign: 'center' }}>
                <CircularProgress size={60} sx={{ color: "#f59e0b", mb: 3 }} />
@@ -302,9 +330,172 @@ const Datasets = () => {
                   Source: {profile.dataset.connector_name} · Type:{" "}
                   {profile.dataset.dataset_type}
                 </Typography>
+
+                {/* Quality Score */}
                 <Typography variant="h6" sx={{ mt: 1, fontWeight: 700 }}>
                   Data Quality Score: {profile.dataset.quality_score ?? 0}%
                 </Typography>
+
+                {/* Missing Data / Junk Data / Outliers Metrics Card */}
+                {(() => {
+                  const llmH = profile.llm_report || {};
+                  const getBarColor = (pct, isOutlier = false) => {
+                    if (pct == null) return "grey.300";
+                    if (isOutlier) {
+                      if (pct === 0) return "#2e7d32";
+                      if (pct < 10) return "#ed6c02";
+                      return "#d32f2f";
+                    }
+                    if (pct < 33) return "#2e7d32";
+                    if (pct < 66) return "#ed6c02";
+                    return "#d32f2f";
+                  };
+                  const renderBar = (label, pct) => {
+                    const isOutlier = label.toLowerCase().includes("outlier");
+                    const displayPct = isOutlier ? Math.max(0, 100 - (pct ?? 0)) : (pct ?? 0);
+                    const color = getBarColor(pct, isOutlier);
+                    return (
+                      <Box sx={{ mb: 1.5 }} key={label}>
+                        <Box sx={{ display: "flex", justifyContent: "space-between", mb: 0.5 }}>
+                          <Typography variant="body2" sx={{ fontWeight: 600 }}>{label}</Typography>
+                          <Typography variant="body2" sx={{ fontWeight: 700, color }}>
+                            {pct != null ? `${pct}%` : "N/A"}
+                          </Typography>
+                        </Box>
+                        <Box sx={{ height: 8, width: "100%", bgcolor: "grey.200", borderRadius: 4, overflow: "hidden" }}>
+                          <Box sx={{ height: "100%", width: `${displayPct}%`, bgcolor: color, transition: "width 0.5s ease" }} />
+                        </Box>
+                      </Box>
+                    );
+                  };
+                  const hasAny = llmH.missing_data_pct != null || llmH.junk_data_pct != null || llmH.outlier_pct != null;
+                  if (!hasAny) return null;
+                  return (
+                    <Card variant="outlined" sx={{ mt: 1.5, mb: 0, p: 2 }}>
+                      {renderBar("Missing Data", llmH.missing_data_pct)}
+                      {renderBar("Junk Data (Incorrect Format)", llmH.junk_data_pct)}
+                      {renderBar("Outliers", llmH.outlier_pct)}
+                    </Card>
+                  );
+                })()}
+
+                {/* Rules Violation */}
+                {(() => {
+                  const llmH = profile.llm_report || {};
+                  const pythonH = profile.python_result || {};
+                  const combinedFailed = [
+                    ...(llmH.failed_rules || []),
+                    ...(pythonH.failed_rules || []),
+                  ];
+                  const hasViolations = combinedFailed.length > 0;
+                  const totalEvaluated =
+                    (llmH.failed_rules?.length || 0) +
+                    (pythonH.failed_rules?.length || 0) +
+                    (llmH.passed_rules?.length || 0) +
+                    (pythonH.passed_rules?.length || 0);
+                  if (totalEvaluated === 0 && !hasViolations) return null;
+                  return (
+                    <Box sx={{ mt: 1.5 }}>
+                      <Typography
+                        variant="subtitle2"
+                        sx={{
+                          fontWeight: 700,
+                          color: hasViolations ? "error.main" : "success.main",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 0.5,
+                          mb: 0.5,
+                        }}
+                      >
+                        {hasViolations ? (
+                          <>
+                            <span role="img" aria-label="alert">⚠️</span>{" "}
+                            Rule Violations: {combinedFailed.length} found
+                          </>
+                        ) : (
+                          <>
+                            <span role="img" aria-label="success">✅</span>{" "}
+                            Rule Violations: None
+                          </>
+                        )}
+                      </Typography>
+                      {hasViolations && (
+                        <Box
+                          sx={{
+                            p: 1.5,
+                            bgcolor: "error.50",
+                            borderRadius: 1,
+                            border: "1px solid",
+                            borderColor: "error.200",
+                          }}
+                        >
+                          <ul style={{ margin: 0, paddingLeft: "1.2rem", color: "#d32f2f" }}>
+                            {combinedFailed.map((violation, idx) => (
+                              <li key={idx}>
+                                <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                                  {violation.rule || violation.rule_type || "Rule"}:{" "}
+                                  {violation.reason || violation.details}
+                                </Typography>
+                              </li>
+                            ))}
+                          </ul>
+                        </Box>
+                      )}
+                    </Box>
+                  );
+                })()}
+
+                {/* Actionable Recommendations (green) */}
+                {(() => {
+                  const llmH = profile.llm_report || {};
+                  const pythonH = profile.python_result || {};
+                  const allRecs = (llmH.recommendations || []).concat(pythonH.findings || []);
+                  if (allRecs.length === 0) return null;
+                  return (
+                    <Box sx={{ mt: 1.5 }}>
+                      <Typography
+                        variant="subtitle2"
+                        sx={{
+                          fontWeight: 700,
+                          color: "success.dark",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 0.5,
+                          mb: 0.5,
+                        }}
+                      >
+                        <span role="img" aria-label="recommendations">💡</span>{" "}
+                        Actionable Recommendations
+                      </Typography>
+                      <Box
+                        sx={{
+                          p: 1.5,
+                          bgcolor: "#e8f5e9",
+                          borderRadius: 1,
+                          border: "1px solid",
+                          borderColor: "#a5d6a7",
+                        }}
+                      >
+                        <ul style={{ margin: 0, paddingLeft: "1.2rem" }}>
+                          {allRecs.map((rec, idx) => (
+                            <li key={idx}>
+                              <Typography
+                                variant="body2"
+                                sx={{ fontWeight: 500, color: "#2e7d32" }}
+                              >
+                                {typeof rec === "string"
+                                  ? rec
+                                  : rec.action
+                                  ? `${rec.action}: ${rec.reason || ""}`
+                                  : JSON.stringify(rec)}
+                              </Typography>
+                            </li>
+                          ))}
+                        </ul>
+                      </Box>
+                    </Box>
+                  );
+                })()}
               </Box>
 
               {(() => {
@@ -375,15 +566,6 @@ const Datasets = () => {
 
                 return (
                   <Box>
-                    {/* Metrics Section */}
-                    <Card variant="outlined" sx={{ mb: 3, p: 2 }}>
-                      {renderBar("Missing Data", llm.missing_data_pct)}
-                      {renderBar(
-                        "Junk Data (Incorrect Format)",
-                        llm.junk_data_pct,
-                      )}
-                      {renderBar("Outliers", llm.outlier_pct)}
-                    </Card>
 
                     {/* Trend Section */}
                     <Box sx={{ mb: 3 }}>
@@ -968,104 +1150,6 @@ const Datasets = () => {
                         </Box>
                       )}
 
-                      {(() => {
-                        const combinedFailedRules = [
-                          ...(llm.failed_rules || []),
-                          ...(python.failed_rules || [])
-                        ];
-                        const hasFailedRules = combinedFailedRules.length > 0;
-                        const totalEvaluated = (llm.failed_rules?.length || 0) + (python.failed_rules?.length || 0) + (llm.passed_rules?.length || 0) + (python.passed_rules?.length || 0) > 0;
-
-                        if (!totalEvaluated && !hasFailedRules) return null;
-
-                        return (
-                          <Box>
-                            <Typography
-                              variant="subtitle2"
-                              sx={{
-                                fontWeight: 700,
-                                mb: 1,
-                                color: hasFailedRules ? "error.main" : "success.main",
-                                display: "flex",
-                                alignItems: "center",
-                                gap: 1,
-                              }}
-                            >
-                              {hasFailedRules ? (
-                                <><span role="img" aria-label="alert">⚠️</span> Rule Violations (Business & Technical)</>
-                              ) : (
-                                <><span role="img" aria-label="success">✅</span> Rules Evaluated</>
-                              )}
-                            </Typography>
-                            <Box
-                              sx={{
-                                p: 2,
-                                bgcolor: hasFailedRules ? "error.50" : "success.50",
-                                borderRadius: 1,
-                                border: "1px solid",
-                                borderColor: hasFailedRules ? "error.200" : "success.200",
-                              }}
-                            >
-                              {hasFailedRules ? (
-                                <ul style={{ margin: 0, paddingLeft: "1.2rem", color: "#d32f2f" }}>
-                                  {combinedFailedRules.map((violation, idx) => (
-                                    <li key={idx}>
-                                      <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                                        {violation.rule || violation.rule_type || "Rule"}: {violation.reason || violation.details}
-                                      </Typography>
-                                    </li>
-                                  ))}
-                                </ul>
-                              ) : (
-                                <Typography variant="body2" sx={{ fontWeight: 600, color: "success.dark" }}>
-                                  Great! The data complies with all your approved business and technical rules. No violations found.
-                                </Typography>
-                              )}
-                            </Box>
-                          </Box>
-                        );
-                      })()}
-
-                      {(llm.recommendations?.length > 0 ||
-                        python.findings?.length > 0) && (
-                        <Box>
-                          <Typography
-                            variant="subtitle2"
-                            sx={{
-                              fontWeight: 700,
-                              mb: 1,
-                              color: "primary.main",
-                            }}
-                          >
-                            Actionable Recommendations
-                          </Typography>
-                          <Box
-                            sx={{
-                              p: 2,
-                              bgcolor: "primary.50",
-                              borderRadius: 1,
-                              border: "1px solid",
-                              borderColor: "primary.100",
-                            }}
-                          >
-                            <ul style={{ margin: 0, paddingLeft: "1.2rem" }}>
-                              {(llm.recommendations || [])
-                                .concat(python.findings || [])
-                                .map((rec, idx) => (
-                                  <li key={idx}>
-                                    <Typography
-                                      variant="body2"
-                                      color="text.primary"
-                                      sx={{ fontWeight: 500 }}
-                                    >
-                                      {typeof rec === 'string' ? rec : rec.action ? `${rec.action}: ${rec.reason || ''}` : JSON.stringify(rec)}
-                                    </Typography>
-                                  </li>
-                                ))}
-                            </ul>
-                          </Box>
-                        </Box>
-                      )}
                     </Stack>
                   </Box>
                 );

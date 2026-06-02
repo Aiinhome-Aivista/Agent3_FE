@@ -20,6 +20,29 @@ import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import UnfoldMoreIcon from "@mui/icons-material/UnfoldMore";
 import CircularProgress from "@mui/material/CircularProgress";
 
+/* Blinking keyframe injected once */
+const blinkStyle = `
+  @keyframes blink-grey {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.25; }
+  }
+`;
+
+const ProcessingChip = () => (
+  <Chip
+    label="Processing..."
+    size="small"
+    sx={{
+      fontSize: "0.7rem",
+      fontWeight: 600,
+      color: "#9e9e9e",
+      borderColor: "#bdbdbd",
+      bgcolor: "#f5f5f5",
+    }}
+    variant="outlined"
+  />
+);
+
 const DatasetTable = ({ datasets = [], onRowClick, sortConfig, onSort, analyzingRowId }) => {
   if (!datasets || datasets.length === 0) {
     return (
@@ -35,7 +58,7 @@ const DatasetTable = ({ datasets = [], onRowClick, sortConfig, onSort, analyzing
 
   // Shared header cell style
   const headerCellSx = {
-    fontSize: "20px",       // 14px — clearly larger than default small
+    fontSize: "20px",
     fontWeight: 700,
     color: "text.primary",
     letterSpacing: "0.02em",
@@ -51,202 +74,244 @@ const DatasetTable = ({ datasets = [], onRowClick, sortConfig, onSort, analyzing
   };
 
   return (
-    <TableContainer
-      component={Paper}
-      sx={{ boxShadow: "none", border: "1px solid", borderColor: "divider" }}
-    >
-      <Table size="small">
-        <TableHead>
-          <TableRow sx={{ bgcolor: "grey.100" }}>
-            {/* Name */}
-            <TableCell sx={headerCellSx}>Name</TableCell>
+    <>
+      {/* Inject blink keyframes */}
+      <style>{blinkStyle}</style>
 
-            {/* Connector — sortable */}
-            <TableCell
-              sx={{ ...headerCellSx, cursor: "pointer", userSelect: "none" }}
-              onClick={() => onSort && onSort("connector_name")}
-            >
-              <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-                Connector
-                {sortConfig?.key !== "connector_name" ? (
-                  <UnfoldMoreIcon
-                    fontSize="small"
-                    sx={{ color: "text.disabled" }}
-                  />
-                ) : sortConfig.direction === "asc" ? (
-                  <KeyboardArrowUpIcon fontSize="small" color="primary" />
-                ) : (
-                  <KeyboardArrowDownIcon fontSize="small" color="primary" />
-                )}
-              </Box>
-            </TableCell>
-
-            <TableCell sx={headerCellSx}>Schema</TableCell>
-            <TableCell sx={headerCellSx}>Type</TableCell>
-            <TableCell sx={headerCellSx}>Outliers</TableCell>
-            <TableCell sx={headerCellSx}>Confidence Score (%)</TableCell>
-            <TableCell sx={headerCellSx}>PII</TableCell>
-            <TableCell sx={{ ...headerCellSx, textAlign: "right" }}>
-              Deep Thinking
-            </TableCell>
-          </TableRow>
-        </TableHead>
-
-        <TableBody>
-          {datasets.map((d) => (
-            <TableRow
-              key={d.id}
-              hover
-              sx={{
-                cursor: onRowClick ? "pointer" : "default",
-                "&:last-child td": { borderBottom: 0 },
-              }}
-            >
+      <TableContainer
+        component={Paper}
+        sx={{ boxShadow: "none", border: "1px solid", borderColor: "divider" }}
+      >
+        <Table size="small">
+          <TableHead>
+            <TableRow sx={{ bgcolor: "grey.100" }}>
               {/* Name */}
-              <TableCell sx={bodyCellSx}>
-                <Typography
-                  variant="body2"
-                  sx={{ fontWeight: 600, fontSize: "0.9125rem" }}
-                >
-                  {d.dataset_name}
-                </Typography>
-              </TableCell>
+              <TableCell sx={headerCellSx}>Name</TableCell>
 
-              {/* Connector */}
-              <TableCell sx={bodyCellSx}>
-                <Typography sx={{ fontWeight: 600, fontSize: "0.9125rem" }}>
-                  {d.connector_name || "-"}
-                </Typography>
-              </TableCell>
-
-              {/* Schema */}
-              <TableCell sx={bodyCellSx}>
-                <Typography sx={{ fontWeight: 600, fontSize: "0.9125rem" }}>
-                  {d.schema_name || "-"}
-                </Typography>
-              </TableCell>
-
-              {/* Type */}
-              <TableCell sx={bodyCellSx}>
-                <Chip
-                  label={d.dataset_type || "table"}
-                  size="small"
-                  variant="outlined"
-                  sx={{ fontSize: "0.75rem", fontWeight: 500 }}
-                />
-              </TableCell>
-
-              {/* Outliers */}
-              <TableCell sx={bodyCellSx}>
-                {d.outlier_count != null ? (
-                  (() => {
-                    const count = d.outlier_count;
-                    let color = "#2e7d32"; // Green
-                    let progress = 100;
-                    
-                    if (count > 10) {
-                      color = "#d32f2f"; // Red
-                      progress = Math.max(10, 50 - (count - 10) * 2);
-                    } else if (count > 0) {
-                      color = "#ed6c02"; // Amber
-                      progress = 100 - (count * 5);
-                    }
-                    
-                    return (
-                      <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-                        {/* <Typography sx={{ fontWeight: 700, fontSize: "0.875rem", color: color, minWidth: 20 }}>
-                          {count}
-                        </Typography> */}
-                        <Box sx={{ height: 6, width: 40, bgcolor: "grey.200", borderRadius: 3, overflow: "hidden", display: { xs: 'none', sm: 'block' } }}>
-                          <Box sx={{ height: "100%", width: `${progress}%`, bgcolor: color }} />
-                        </Box>
-                      </Box>
-                    );
-                  })()
-                ) : (
-                  "-"
-                )}
-              </TableCell>
-
-              {/* Confident (%) */}
-              <TableCell sx={bodyCellSx}>
-                {d.confidence_score != null ? (
-                  (() => {
-                    const score = Math.round(d.confidence_score);
-                    let color = "#2e7d32"; // Green
-                    if (score < 70) color = "#d32f2f"; // Red
-                    else if (score < 90) color = "#ed6c02"; // Amber
-
-                    return (
-                      <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-                        <Typography sx={{ fontWeight: 700, fontSize: "0.875rem", color: color, minWidth: 30 }}>
-                          {score}
-                        </Typography>
-                        <Box sx={{ height: 6, width: 60, bgcolor: "grey.200", borderRadius: 3, overflow: "hidden", display: { xs: 'none', sm: 'block' } }}>
-                          <Box sx={{ height: "100%", width: `${score}%`, bgcolor: color }} />
-                        </Box>
-                      </Box>
-                    );
-                  })()
-                ) : (
-                  "-"
-                )}
-              </TableCell>
-
-              {/* PII */}
-              <TableCell sx={bodyCellSx}>
-                {d.pii_percentage != null ? (
-                  d.pii_percentage > 0 ? (
-                    <Chip
-                      label={`PII (${d.pii_percentage}%)`}
-                      size="small"
-                      color="error"
-                      sx={{ fontSize: "0.75rem", fontWeight: 600 }}
-                    />
-                  ) : (
-                    <Chip
-                      label="None"
-                      size="small"
-                      variant="outlined"
-                      sx={{ fontSize: "0.75rem" }}
-                    />
-                  )
-                ) : d.contains_pii === true ? (
-                  <Chip
-                    label="PII"
-                    size="small"
-                    color="error"
-                    sx={{ fontSize: "0.75rem", fontWeight: 600 }}
-                  />
-                ) : d.contains_pii === false ? (
-                  <Chip
-                    label="None"
-                    size="small"
-                    variant="outlined"
-                    sx={{ fontSize: "0.75rem" }}
-                  />
-                ) : null}
-              </TableCell>
-
-              {/* Deep Thinking */}
-              <TableCell align="right" sx={bodyCellSx}>
-                <Tooltip title="View Profile">
-                  <IconButton
-                    size="small"
-                    onClick={() => onRowClick && onRowClick(d)}
-                  >
-                    <LightbulbIcon
+              {/* Connector — sortable */}
+              <TableCell
+                sx={{ ...headerCellSx, cursor: "pointer", userSelect: "none" }}
+                onClick={() => onSort && onSort("connector_name")}
+              >
+                <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                  Connector
+                  {sortConfig?.key !== "connector_name" ? (
+                    <UnfoldMoreIcon
                       fontSize="small"
-                      sx={{ color: "#f59e0b" }}
+                      sx={{ color: "text.disabled" }}
                     />
-                  </IconButton>
-                </Tooltip>
+                  ) : sortConfig.direction === "asc" ? (
+                    <KeyboardArrowUpIcon fontSize="small" color="primary" />
+                  ) : (
+                    <KeyboardArrowDownIcon fontSize="small" color="primary" />
+                  )}
+                </Box>
+              </TableCell>
+
+              <TableCell sx={headerCellSx}>Schema</TableCell>
+              <TableCell sx={headerCellSx}>Type</TableCell>
+              <TableCell sx={headerCellSx}>Outliers</TableCell>
+              <TableCell sx={headerCellSx}>Confidence Score (%)</TableCell>
+              <TableCell sx={headerCellSx}>PII</TableCell>
+              <TableCell sx={{ ...headerCellSx, textAlign: "right" }}>
+                Deep Thinking
               </TableCell>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </TableContainer>
+          </TableHead>
+
+          <TableBody>
+            {datasets.map((d) => {
+              const isScanning = !!d.is_scanning;
+
+              return (
+                <TableRow
+                  key={d.id}
+                  hover
+                  sx={{
+                    cursor: onRowClick ? "pointer" : "default",
+                    "&:last-child td": { borderBottom: 0 },
+                  }}
+                >
+                  {/* Name */}
+                  <TableCell sx={bodyCellSx}>
+                    <Typography
+                      variant="body2"
+                      sx={{ fontWeight: 600, fontSize: "0.9125rem" }}
+                    >
+                      {d.dataset_name}
+                    </Typography>
+                  </TableCell>
+
+                  {/* Connector */}
+                  <TableCell sx={bodyCellSx}>
+                    <Typography sx={{ fontWeight: 600, fontSize: "0.9125rem" }}>
+                      {d.connector_name || "-"}
+                    </Typography>
+                  </TableCell>
+
+                  {/* Schema */}
+                  <TableCell sx={bodyCellSx}>
+                    <Typography sx={{ fontWeight: 600, fontSize: "0.9125rem" }}>
+                      {d.schema_name || "-"}
+                    </Typography>
+                  </TableCell>
+
+                  {/* Type */}
+                  <TableCell sx={bodyCellSx}>
+                    <Chip
+                      label={d.dataset_type || "table"}
+                      size="small"
+                      variant="outlined"
+                      sx={{ fontSize: "0.75rem", fontWeight: 500 }}
+                    />
+                  </TableCell>
+
+                  {/* Outliers */}
+                  <TableCell sx={bodyCellSx}>
+                    {isScanning ? (
+                      <ProcessingChip />
+                    ) : d.outlier_count != null ? (
+                      (() => {
+                        const count = d.outlier_count;
+                        let color = "#2e7d32";
+                        let progress = 100;
+
+                        if (count > 10) {
+                          color = "#d32f2f";
+                          progress = Math.max(10, 50 - (count - 10) * 2);
+                        } else if (count > 0) {
+                          color = "#ed6c02";
+                          progress = 100 - count * 5;
+                        }
+
+                        return (
+                          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+                            <Box
+                              sx={{
+                                height: 6,
+                                width: 40,
+                                bgcolor: "grey.200",
+                                borderRadius: 3,
+                                overflow: "hidden",
+                                display: { xs: "none", sm: "block" },
+                              }}
+                            >
+                              <Box sx={{ height: "100%", width: `${progress}%`, bgcolor: color }} />
+                            </Box>
+                          </Box>
+                        );
+                      })()
+                    ) : (
+                      "-"
+                    )}
+                  </TableCell>
+
+                  {/* Confidence Score (%) */}
+                  <TableCell sx={bodyCellSx}>
+                    {isScanning ? (
+                      <ProcessingChip />
+                    ) : d.confidence_score != null ? (
+                      (() => {
+                        const score = Math.round(d.confidence_score);
+                        let color = "#2e7d32";
+                        if (score < 70) color = "#d32f2f";
+                        else if (score < 90) color = "#ed6c02";
+
+                        return (
+                          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+                            <Typography
+                              sx={{ fontWeight: 700, fontSize: "0.875rem", color, minWidth: 30 }}
+                            >
+                              {score}
+                            </Typography>
+                            <Box
+                              sx={{
+                                height: 6,
+                                width: 60,
+                                bgcolor: "grey.200",
+                                borderRadius: 3,
+                                overflow: "hidden",
+                                display: { xs: "none", sm: "block" },
+                              }}
+                            >
+                              <Box sx={{ height: "100%", width: `${score}%`, bgcolor: color }} />
+                            </Box>
+                          </Box>
+                        );
+                      })()
+                    ) : (
+                      "-"
+                    )}
+                  </TableCell>
+
+                  {/* PII */}
+                  <TableCell sx={bodyCellSx}>
+                    {isScanning ? (
+                      <ProcessingChip />
+                    ) : d.pii_percentage != null ? (
+                      d.pii_percentage > 0 ? (
+                        <Chip
+                          label={`PII (${d.pii_percentage}%)`}
+                          size="small"
+                          color="error"
+                          sx={{ fontSize: "0.75rem", fontWeight: 600 }}
+                        />
+                      ) : (
+                        <Chip
+                          label="None"
+                          size="small"
+                          variant="outlined"
+                          sx={{ fontSize: "0.75rem" }}
+                        />
+                      )
+                    ) : d.contains_pii === true ? (
+                      <Chip
+                        label="PII"
+                        size="small"
+                        color="error"
+                        sx={{ fontSize: "0.75rem", fontWeight: 600 }}
+                      />
+                    ) : d.contains_pii === false ? (
+                      <Chip
+                        label="None"
+                        size="small"
+                        variant="outlined"
+                        sx={{ fontSize: "0.75rem" }}
+                      />
+                    ) : null}
+                  </TableCell>
+
+                  {/* Deep Thinking */}
+                  <TableCell align="right" sx={bodyCellSx}>
+                    <Tooltip title={isScanning ? "Scan in progress..." : "View Profile"}>
+                      <span>
+                        <IconButton
+                          size="small"
+                          onClick={() => !isScanning && onRowClick && onRowClick(d)}
+                          disabled={false}
+                          sx={{ p: 0.5 }}
+                        >
+                          <LightbulbIcon
+                            fontSize="small"
+                            sx={{
+                              color: isScanning ? "#bdbdbd" : "#f59e0b",
+                              animation: isScanning
+                                ? "blink-grey 1.4s ease-in-out infinite"
+                                : "none",
+                              transition: "color 0.3s",
+                            }}
+                          />
+                        </IconButton>
+                      </span>
+                    </Tooltip>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
+      </TableContainer>
+    </>
   );
 };
 
