@@ -269,10 +269,10 @@ const Datasets = () => {
         </CardContent>
       </Card>
 
-      <Snackbar 
-        open={snackbarOpen} 
-        autoHideDuration={4000} 
-        onClose={() => setSnackbarOpen(false)} 
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={4000}
+        onClose={() => setSnackbarOpen(false)}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
       >
         <Alert onClose={() => setSnackbarOpen(false)} severity="info" sx={{ width: '100%' }}>
@@ -308,13 +308,13 @@ const Datasets = () => {
             </Box>
           ) : scanningDataset ? (
             <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '60vh', textAlign: 'center' }}>
-               <CircularProgress size={60} sx={{ color: "#f59e0b", mb: 3 }} />
-               <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.secondary' }}>
-                 Analyzing Dataset: {scanningDataset.dataset_name}
-               </Typography>
-               <Typography variant="body2" sx={{ color: 'text.disabled', mt: 1, maxWidth: 400 }}>
-                 Please wait while AI performs data quality and business rule checks.
-               </Typography>
+              <CircularProgress size={60} sx={{ color: "#f59e0b", mb: 3 }} />
+              <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.secondary' }}>
+                Analyzing Dataset: {scanningDataset.dataset_name}
+              </Typography>
+              <Typography variant="body2" sx={{ color: 'text.disabled', mt: 1, maxWidth: 400 }}>
+                Please wait while AI performs data quality and business rule checks.
+              </Typography>
             </Box>
           ) : (
             <Box>
@@ -486,8 +486,8 @@ const Datasets = () => {
                                 {typeof rec === "string"
                                   ? rec
                                   : rec.action
-                                  ? `${rec.action}: ${rec.reason || ""}`
-                                  : JSON.stringify(rec)}
+                                    ? `${rec.action}: ${rec.reason || ""}`
+                                    : JSON.stringify(rec)}
                               </Typography>
                             </li>
                           ))}
@@ -650,8 +650,8 @@ const Datasets = () => {
                           borderColor: "divider",
                         }}
                       >
-                        {typeof llm.contextual_summary === 'string' 
-                          ? (llm.contextual_summary || "No contextual AI evaluation available.") 
+                        {typeof llm.contextual_summary === 'string'
+                          ? (llm.contextual_summary || "No contextual AI evaluation available.")
                           : JSON.stringify(llm.contextual_summary)}
                       </Typography>
 
@@ -755,20 +755,20 @@ const Datasets = () => {
                       try {
                         const pj = profile.dataset.profiling_json ? JSON.parse(profile.dataset.profiling_json) : null;
                         const discoveryContext = pj?.profile?.summary?.technical_context || pj?.profile?.summary || pj;
-                        
+
                         // Priority 1: python_result from the last quality scan
                         if (profile.python_result?.table_info) {
-                           const ti = profile.python_result.table_info;
-                           tables = [{
-                             table_name:   ti.table_name,
-                             schema:       ti.schema,
-                             column_count: ti.column_count,
-                             columns:      ti.columns,
-                             primary_keys: ti.primary_keys,
-                             foreign_keys: ti.foreign_keys
-                           }];
-                           sourceKind = discoveryContext?.source_kind || 'table';
-                        } 
+                          const ti = profile.python_result.table_info;
+                          tables = [{
+                            table_name: ti.table_name,
+                            schema: ti.schema,
+                            column_count: ti.column_count,
+                            columns: ti.columns,
+                            primary_keys: ti.primary_keys,
+                            foreign_keys: ti.foreign_keys
+                          }];
+                          sourceKind = discoveryContext?.source_kind || 'table';
+                        }
                         // Priority 2: initial discovery context
                         else if (discoveryContext?.tables) {
                           tables = discoveryContext.tables;
@@ -813,10 +813,10 @@ const Datasets = () => {
                                         Schema: {table.schema || 'N/A'} · Source Kind: {sourceKind}
                                       </Typography>
                                     </Box>
-                                    <Chip 
-                                      label={`${table.column_count || table.columns?.length || 0} Columns`} 
-                                      size="small" 
-                                      sx={{ fontWeight: 600, bgcolor: 'white' }} 
+                                    <Chip
+                                      label={`${table.column_count || table.columns?.length || 0} Columns`}
+                                      size="small"
+                                      sx={{ fontWeight: 600, bgcolor: 'white' }}
                                     />
                                   </Stack>
 
@@ -833,18 +833,18 @@ const Datasets = () => {
                                         {(table.columns || []).map((col, cidx) => {
                                           const isPk = pkSet.has(col.name) || col.is_pk;
                                           const fk = fkMap.get(col.name);
-                                          
+
                                           return (
                                             <TableRow key={cidx} hover>
                                               <TableCell sx={{ fontSize: '0.75rem', py: 0.5, fontFamily: 'monospace' }}>
                                                 {col.name}
                                               </TableCell>
                                               <TableCell sx={{ fontSize: '0.7rem', py: 0.5 }}>
-                                                <Chip 
-                                                  label={col.type} 
-                                                  size="small" 
-                                                  variant="outlined" 
-                                                  sx={{ height: 18, fontSize: '0.6rem', color: 'text.secondary' }} 
+                                                <Chip
+                                                  label={col.type}
+                                                  size="small"
+                                                  variant="outlined"
+                                                  sx={{ height: 18, fontSize: '0.6rem', color: 'text.secondary' }}
                                                 />
                                               </TableCell>
                                               <TableCell sx={{ py: 0.5 }}>
@@ -873,7 +873,7 @@ const Datasets = () => {
                                       </Typography>
                                       <Stack direction="row" spacing={1} flexWrap="wrap">
                                         {table.foreign_keys.map((f, fidx) => (
-                                          <Chip 
+                                          <Chip
                                             key={fidx}
                                             label={`${f.column} ➔ ${f.ref_table}(${f.ref_column})`}
                                             size="small"
@@ -978,8 +978,8 @@ const Datasets = () => {
                                     <TableCell sx={{ fontSize: "0.75rem" }}>
                                       {run.run_start
                                         ? new Date(
-                                            run.run_start,
-                                          ).toLocaleString()
+                                          run.run_start,
+                                        ).toLocaleString()
                                         : "-"}
                                     </TableCell>
                                     <TableCell sx={{ fontSize: "0.75rem" }}>

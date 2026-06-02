@@ -170,9 +170,9 @@ const DatasetTable = ({ datasets = [], onRowClick, sortConfig, onSort, analyzing
                   <TableCell sx={bodyCellSx}>
                     {isScanning ? (
                       <ProcessingChip />
-                    ) : d.outlier_count != null ? (
+                    ) : d.last_profiled_at ? (
                       (() => {
-                        const count = d.outlier_count;
+                        const count = d.outlier_count ?? 0;
                         let color = "#2e7d32";
                         let progress = 100;
 
@@ -185,24 +185,30 @@ const DatasetTable = ({ datasets = [], onRowClick, sortConfig, onSort, analyzing
                         }
 
                         return (
-                          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-                            <Box
-                              sx={{
-                                height: 6,
-                                width: 40,
-                                bgcolor: "grey.200",
-                                borderRadius: 3,
-                                overflow: "hidden",
-                                display: { xs: "none", sm: "block" },
-                              }}
-                            >
-                              <Box sx={{ height: "100%", width: `${progress}%`, bgcolor: color }} />
+                          <Tooltip
+                            title={`Outliers: ${count} ${count === 0 ? "— None detected" : count <= 10 ? "— Few outliers" : "— High outlier count"}`}
+                            arrow
+                            placement="top"
+                          >
+                            <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, cursor: "help" }}>
+                              <Box
+                                sx={{
+                                  height: 6,
+                                  width: 40,
+                                  bgcolor: "grey.200",
+                                  borderRadius: 3,
+                                  overflow: "hidden",
+                                  display: { xs: "none", sm: "block" },
+                                }}
+                              >
+                                <Box sx={{ height: "100%", width: `${progress}%`, bgcolor: color }} />
+                              </Box>
                             </Box>
-                          </Box>
+                          </Tooltip>
                         );
                       })()
                     ) : (
-                      "-"
+                      <Typography sx={{ color: "text.disabled", fontWeight: 600, fontSize: "0.9rem" }}>--</Typography>
                     )}
                   </TableCell>
 
@@ -283,27 +289,38 @@ const DatasetTable = ({ datasets = [], onRowClick, sortConfig, onSort, analyzing
 
                   {/* Deep Thinking */}
                   <TableCell align="right" sx={bodyCellSx}>
-                    <Tooltip title={isScanning ? "Scan in progress..." : "View Profile"}>
-                      <span>
-                        <IconButton
-                          size="small"
-                          onClick={() => !isScanning && onRowClick && onRowClick(d)}
-                          disabled={false}
-                          sx={{ p: 0.5 }}
-                        >
-                          <LightbulbIcon
-                            fontSize="small"
-                            sx={{
-                              color: isScanning ? "#bdbdbd" : "#f59e0b",
-                              animation: isScanning
-                                ? "blink-grey 1.4s ease-in-out infinite"
-                                : "none",
-                              transition: "color 0.3s",
-                            }}
-                          />
-                        </IconButton>
-                      </span>
-                    </Tooltip>
+                    {(() => {
+                      const notScanned = !d.last_profiled_at && !isScanning;
+                      const tooltipText = isScanning
+                        ? "Scan in progress..."
+                        : notScanned
+                        ? "Approve Rules to enable Profile"
+                        : "View Profile";
+
+                      return (
+                        <Tooltip title={tooltipText}>
+                          <span>
+                            <IconButton
+                              size="small"
+                              onClick={() => !isScanning && !notScanned && onRowClick && onRowClick(d)}
+                              disabled={notScanned}
+                              sx={{ p: 0.5 }}
+                            >
+                              <LightbulbIcon
+                                fontSize="small"
+                                sx={{
+                                  color: isScanning || notScanned ? "#bdbdbd" : "#f59e0b",
+                                  animation: isScanning
+                                    ? "blink-grey 1.4s ease-in-out infinite"
+                                    : "none",
+                                  transition: "color 0.3s",
+                                }}
+                              />
+                            </IconButton>
+                          </span>
+                        </Tooltip>
+                      );
+                    })()}
                   </TableCell>
                 </TableRow>
               );
