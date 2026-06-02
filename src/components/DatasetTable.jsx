@@ -294,7 +294,7 @@ const DatasetTable = ({ datasets = [], onRowClick, sortConfig, onSort, analyzing
                       const tooltipText = isScanning
                         ? "Scan in progress..."
                         : notScanned
-                        ? "Approve Rules to enable Profile"
+                        ? "Approve rules to enable profile"
                         : "View Profile";
 
                       return (
