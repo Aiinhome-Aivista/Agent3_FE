@@ -27,3 +27,5 @@ yarn-debug.log*
 
 # OS
 Thumbs.db
+
+*.zip
