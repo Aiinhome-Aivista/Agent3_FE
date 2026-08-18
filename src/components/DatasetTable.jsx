@@ -84,7 +84,7 @@ const DatasetTable = ({ datasets = [], onRowClick, sortConfig, onSort, analyzing
       >
         <Table size="small">
           <TableHead>
-            <TableRow sx={{ bgcolor: "grey.100" }}>
+            <TableRow sx={{ bgcolor: (theme) => theme.palette.mode === 'light' ? 'grey.100' : 'background.default' }}>
               {/* Name */}
               <TableCell sx={headerCellSx}>Name</TableCell>
 

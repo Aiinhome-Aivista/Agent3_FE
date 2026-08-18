@@ -209,7 +209,7 @@ function TimelineNode({ run, isLast, groupDate }) {
 
         <Collapse in={expanded}>
           <Divider />
-          <Box sx={{ px: 3, py: 2.5, bgcolor: '#ffffff' }}>
+          <Box sx={{ px: 3, py: 2.5, bgcolor: 'background.paper' }}>
             <Stack direction="row" spacing={5} sx={{ mb: 3, flexWrap: 'wrap' }}>
               <Box>
                 <Typography sx={{ fontSize: 11, color: 'text.disabled', fontWeight: 800, textTransform: 'uppercase', mb: 0.75 }}>Run ID</Typography>
@@ -249,7 +249,7 @@ function TimelineNode({ run, isLast, groupDate }) {
 
             <Stack spacing={2.5}>
               {hasData(llm.technical_summary) && (
-                <Paper variant="outlined" sx={{ p: 2, borderRadius: 2, bgcolor: '#fff', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>
+                <Paper variant="outlined" sx={{ p: 2, borderRadius: 2, bgcolor: 'background.default', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>
                   <Typography sx={{ fontSize: 11, color: 'primary.main', fontWeight: 900, textTransform: 'uppercase', mb: 1, display: 'flex', alignItems: 'center', gap: 0.75 }}>
                     <CheckCircleOutlineIcon sx={{ fontSize: 16 }} /> Technical Summary
                   </Typography>
@@ -258,7 +258,7 @@ function TimelineNode({ run, isLast, groupDate }) {
               )}
 
               {hasData(llm.contextual_summary) && (
-                <Paper variant="outlined" sx={{ p: 2, borderRadius: 2, bgcolor: '#fff', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>
+                <Paper variant="outlined" sx={{ p: 2, borderRadius: 2, bgcolor: 'background.default', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>
                   <Typography sx={{ fontSize: 11, color: '#6366f1', fontWeight: 900, textTransform: 'uppercase', mb: 1, display: 'flex', alignItems: 'center', gap: 0.75 }}>
                     <TimelineIcon sx={{ fontSize: 16 }} /> Contextual Analysis
                   </Typography>
@@ -309,9 +309,9 @@ function TimelineNode({ run, isLast, groupDate }) {
                         <Typography sx={{ fontSize: 10, color: 'text.disabled', fontWeight: 700, textTransform: 'uppercase', mb: 1 }}>Failed Rules</Typography>
                         <Stack spacing={1}>
                           {python.failed_rules.map((fr, i) => (
-                            <Box key={i} sx={{ p: 1, bgcolor: '#fee2e2', borderRadius: 1, border: '1px solid #fca5a5' }}>
-                              <Typography sx={{ fontSize: 12, fontWeight: 700, color: '#b91c1c' }}>{typeof fr.rule === 'string' ? fr.rule : JSON.stringify(fr.rule)}</Typography>
-                              <Typography sx={{ fontSize: 11, color: '#b91c1c' }}>{Array.isArray(fr.reason) ? fr.reason.map(r => typeof r === 'string' ? r : JSON.stringify(r)).join('; ') : (typeof fr.reason === 'string' ? fr.reason : JSON.stringify(fr.reason))}</Typography>
+                            <Box key={i} sx={{ p: 1, bgcolor: alpha(theme.palette.error.main, 0.1), borderRadius: 1, border: `1px solid ${alpha(theme.palette.error.main, 0.2)}` }}>
+                              <Typography sx={{ fontSize: 12, fontWeight: 700, color: 'error.main' }}>{typeof fr.rule === 'string' ? fr.rule : JSON.stringify(fr.rule)}</Typography>
+                              <Typography sx={{ fontSize: 11, color: 'error.main' }}>{Array.isArray(fr.reason) ? fr.reason.map(r => typeof r === 'string' ? r : JSON.stringify(r)).join('; ') : (typeof fr.reason === 'string' ? fr.reason : JSON.stringify(fr.reason))}</Typography>
                             </Box>
                           ))}
                         </Stack>

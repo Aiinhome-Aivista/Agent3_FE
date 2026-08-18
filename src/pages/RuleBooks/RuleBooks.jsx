@@ -105,6 +105,8 @@ const RuleBooks = () => {
   const [selectedRuleBook, setSelectedRuleBook] = useState(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [searching, setSearching] = useState(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleteId, setDeleteId] = useState(null);
 
   const formatRuleText = (rawText) => {
     if (!rawText) return '-';
@@ -219,9 +221,22 @@ const RuleBooks = () => {
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm("Delete this knowledge base?")) return;
-    await dispatch(deleteRuleBook(id));
+  const handleDelete = (id) => {
+    setDeleteId(id);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDeleteAction = async () => {
+    if (deleteId) {
+      await dispatch(deleteRuleBook(deleteId));
+      setDeleteDialogOpen(false);
+      setDeleteId(null);
+    }
+  };
+
+  const closeDeleteDialog = () => {
+    setDeleteDialogOpen(false);
+    setDeleteId(null);
   };
 
   const handleSearchSimilar = async (rb) => {
@@ -537,7 +552,7 @@ const RuleBooks = () => {
         onClose={closeDialog}
         maxWidth="sm"
         fullWidth
-        PaperProps={{ sx: { bgcolor: "#ffffff" } }}
+        PaperProps={{ sx: { bgcolor: "background.paper" } }}
       >
         <DialogTitle>Upload Knowledge Base</DialogTitle>
         <DialogContent dividers>
@@ -678,7 +693,7 @@ const RuleBooks = () => {
         anchor="right"
         open={drawerOpen}
         onClose={closeDrawer}
-        PaperProps={{ sx: { width: { xs: "100%", md: 600 }, bgcolor: "#ffffff" } }}
+        PaperProps={{ sx: { width: { xs: "100%", md: 600 }, bgcolor: "background.paper" } }}
       >
         <Box sx={{ p: 3 }}>
           <Stack
@@ -766,7 +781,7 @@ const RuleBooks = () => {
         onClose={closeAddRuleDialog}
         maxWidth="sm"
         fullWidth
-        PaperProps={{ sx: { bgcolor: "#ffffff" } }}
+        PaperProps={{ sx: { bgcolor: "background.paper" } }}
       >
         <DialogTitle>Add Validation Rule</DialogTitle>
         <DialogContent dividers>
@@ -806,6 +821,27 @@ const RuleBooks = () => {
           <Button onClick={closeAddRuleDialog}>Cancel</Button>
           <Button onClick={handleAddRule} variant="contained">
             Add
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={closeDeleteDialog}
+        maxWidth="xs"
+        fullWidth
+        PaperProps={{ sx: { bgcolor: "background.paper" } }}
+      >
+        <DialogTitle>Delete Knowledge Base</DialogTitle>
+        <DialogContent>
+          <Typography>Are you sure you want to delete this knowledge base? This action cannot be undone.</Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={closeDeleteDialog} variant="outlined" color="inherit">
+            Cancel
+          </Button>
+          <Button onClick={confirmDeleteAction} variant="contained" color="error">
+            Delete
           </Button>
         </DialogActions>
       </Dialog>

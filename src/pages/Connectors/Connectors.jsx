@@ -118,6 +118,8 @@ const Connectors = () => {
   );
 
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleteId, setDeleteId] = useState(null);
   const [editMode, setEditMode] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [name, setName] = useState("");
@@ -335,13 +337,23 @@ const Connectors = () => {
     dispatch(fetchConnectors());
   };
 
-  const handleDelete = async (id) => {
-    if (
-      !window.confirm("Delete this connector and all related datasets/alerts?")
-    )
-      return;
-    await dispatch(deleteConnector(id));
-    dispatch(fetchConnectors());
+  const handleDelete = (id) => {
+    setDeleteId(id);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDeleteAction = async () => {
+    if (deleteId) {
+      await dispatch(deleteConnector(deleteId));
+      dispatch(fetchConnectors());
+      setDeleteDialogOpen(false);
+      setDeleteId(null);
+    }
+  };
+
+  const closeDeleteDialog = () => {
+    setDeleteDialogOpen(false);
+    setDeleteId(null);
   };
 
   // Shared header cell style
@@ -525,7 +537,7 @@ const Connectors = () => {
         onClose={closeDialog}
         maxWidth={testResult?.preview ? "md" : "sm"}
         fullWidth
-        PaperProps={{ sx: { bgcolor: "#ffffff" } }}
+        PaperProps={{ sx: { bgcolor: 'background.paper' } }}
       >
         <DialogTitle>
           {editMode ? "Edit Connector" : "Add Connector"}
@@ -607,11 +619,11 @@ const Connectors = () => {
                       <Table size="small" stickyHeader>
                         <TableHead>
                           <TableRow>
-                            <TableCell sx={{ fontWeight: 700, bgcolor: 'grey.100', fontSize: '0.7rem' }}>Asset Name</TableCell>
-                            <TableCell sx={{ fontWeight: 700, bgcolor: 'grey.100', fontSize: '0.7rem' }}>Type</TableCell>
-                            <TableCell sx={{ fontWeight: 700, bgcolor: 'grey.100', fontSize: '0.7rem' }}>Source System</TableCell>
-                            <TableCell sx={{ fontWeight: 700, bgcolor: 'grey.100', fontSize: '0.7rem' }}>Details</TableCell>
-                            <TableCell sx={{ fontWeight: 700, bgcolor: 'grey.100', fontSize: '0.7rem' }} align="right">Action</TableCell>
+                            <TableCell sx={{ fontWeight: 700, bgcolor: (theme) => theme.palette.mode === 'light' ? 'grey.100' : 'background.default', fontSize: '0.7rem' }}>Asset Name</TableCell>
+                            <TableCell sx={{ fontWeight: 700, bgcolor: (theme) => theme.palette.mode === 'light' ? 'grey.100' : 'background.default', fontSize: '0.7rem' }}>Type</TableCell>
+                            <TableCell sx={{ fontWeight: 700, bgcolor: (theme) => theme.palette.mode === 'light' ? 'grey.100' : 'background.default', fontSize: '0.7rem' }}>Source System</TableCell>
+                            <TableCell sx={{ fontWeight: 700, bgcolor: (theme) => theme.palette.mode === 'light' ? 'grey.100' : 'background.default', fontSize: '0.7rem' }}>Details</TableCell>
+                            <TableCell sx={{ fontWeight: 700, bgcolor: (theme) => theme.palette.mode === 'light' ? 'grey.100' : 'background.default', fontSize: '0.7rem' }} align="right">Action</TableCell>
                           </TableRow>
                         </TableHead>
                         <TableBody>
@@ -798,6 +810,27 @@ const Connectors = () => {
             disabled={!activeAsset || !assetCreds[activeAsset.name]?.tested}
           >
             Done
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={closeDeleteDialog}
+        maxWidth="xs"
+        fullWidth
+        PaperProps={{ sx: { bgcolor: "background.paper" } }}
+      >
+        <DialogTitle>Delete Connector</DialogTitle>
+        <DialogContent>
+          <Typography>Are you sure you want to delete this connector and all related datasets/alerts? This action cannot be undone.</Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={closeDeleteDialog} variant="outlined" color="inherit">
+            Cancel
+          </Button>
+          <Button onClick={confirmDeleteAction} variant="contained" color="error">
+            Delete
           </Button>
         </DialogActions>
       </Dialog>

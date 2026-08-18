@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import {
-    Box, Container, Typography, Button, Grid, Card, CardContent, Stack, Chip,
+    Box, Container, Typography, Button, Grid, Card, CardContent, Stack, Chip, IconButton
 } from '@mui/material';
 import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
@@ -15,6 +15,10 @@ import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import StorageIcon from '@mui/icons-material/Storage';
 import CloudIcon from '@mui/icons-material/Cloud';
 import DataObjectIcon from '@mui/icons-material/DataObject';
+import Brightness4Icon from '@mui/icons-material/Brightness4';
+import Brightness7Icon from '@mui/icons-material/Brightness7';
+import { useDispatch } from 'react-redux';
+import { toggleTheme } from '../../redux/slices/themeSlice';
 import Login from '../Login/Login';
 
 const features = [
@@ -22,37 +26,37 @@ const features = [
         icon: <HubIcon sx={{ fontSize: 36 }} />,
         title: 'Universal Connectors',
         desc: 'One-click integration with MySQL, MSSQL, Azure Data Factory, Databricks pipelines and GitHub.',
-        color: '#2563eb',
+        color: '#FF5A14',
     },
     {
         icon: <MonitorHeartIcon sx={{ fontSize: 36 }} />,
         title: 'Deterministic Quality Engine',
         desc: 'Python-driven statistics for outliers, anomalies, governance, blank/garbage values and trend deviations.',
-        color: '#16a34a',
+        color: '#FF7A45',
     },
     {
         icon: <PsychologyIcon sx={{ fontSize: 36 }} />,
         title: 'AI Interpretation Layer',
         desc: 'Mistral-powered confidence scoring and natural-language interpretation on top of deterministic findings.',
-        color: '#7c3aed',
+        color: '#F56B2F',
     },
     {
         icon: <PrivacyTipIcon sx={{ fontSize: 36 }} />,
         title: 'PII & Governance',
         desc: 'Automatic detection of email, phone, Aadhaar, PAN and other sensitive categories across every dataset.',
-        color: '#dc2626',
+        color: '#FF8A55',
     },
     {
         icon: <InsightsIcon sx={{ fontSize: 36 }} />,
         title: 'Schema Drift Detection',
         desc: 'Continuous comparison of schema snapshots — column adds, drops and type changes raise smart alerts.',
-        color: '#0891b2',
+        color: '#FF5A14',
     },
     {
         icon: <RuleIcon sx={{ fontSize: 36 }} />,
         title: 'Knowledge Base & RAG',
         desc: 'Plug your own validation knowledge bases — indexed in ChromaDB and consulted during quality runs.',
-        color: '#d97706',
+        color: '#FF7A45',
     },
 ];
 
@@ -66,9 +70,11 @@ const connectors = [
 
 const Landing = () => {
     const navigate = useNavigate();
+    const dispatch = useDispatch();
     const location = useLocation();
     const [searchParams] = useSearchParams();
     const token = useSelector((s) => s.auth.token);
+    const themeMode = useSelector((s) => s.theme?.mode || 'light');
     const [loginOpen, setLoginOpen] = useState(false);
 
     const loginRequested = searchParams.get('login') === '1';
@@ -142,7 +148,10 @@ const Landing = () => {
                             <ShieldIcon sx={{ color: 'primary.main' }} />
                             <Typography variant="h6" sx={{ fontWeight: 700 }}>DQ Sentinel</Typography>
                         </Stack>
-                        <Stack direction="row" spacing={1}>
+                        <Stack direction="row" spacing={1} alignItems="center">
+                            <IconButton onClick={() => dispatch(toggleTheme())} color="inherit">
+                                {themeMode === 'dark' ? <Brightness7Icon /> : <Brightness4Icon />}
+                            </IconButton>
                             <Button variant="text" onClick={openLogin}>
                                 Sign in
                             </Button>
@@ -158,7 +167,7 @@ const Landing = () => {
             <Box
                 sx={{
                     background:
-                        'linear-gradient(135deg, rgba(37,99,235,0.08) 0%, rgba(124,58,237,0.08) 100%)',
+                        'linear-gradient(135deg, rgba(255,90,20,0.08) 0%, rgba(245,107,47,0.08) 100%)',
                     py: { xs: 8, md: 12 },
                 }}
             >
@@ -306,7 +315,7 @@ const Landing = () => {
             </Container>
 
             {/* CTA */}
-            <Box sx={{ py: { xs: 6, md: 10 }, background: 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)' }}>
+            <Box sx={{ py: { xs: 6, md: 10 }, background: 'linear-gradient(135deg, #FF5A14 0%, #F56B2F 100%)' }}>
                 <Container maxWidth="md">
                     <Stack alignItems="center" spacing={3}>
                         <Typography variant="h3" sx={{ color: 'white', fontWeight: 800, textAlign: 'center' }}>

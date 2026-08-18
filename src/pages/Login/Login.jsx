@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   Dialog, DialogContent, Box, Card, CardContent, TextField, Button, Typography,
-  Alert, InputAdornment, IconButton, Stack,
+  Alert, InputAdornment, IconButton, Stack, useTheme
 } from '@mui/material';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
@@ -13,6 +13,9 @@ import { login, clearError } from '../../redux/slices/authSlice';
 const Login = ({ open = true, onClose, onSuccess }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
+  
   const { loading, error, token } = useSelector((s) => s.auth);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -47,13 +50,18 @@ const Login = ({ open = true, onClose, onSuccess }) => {
       PaperProps={{ 
         sx: { 
           borderRadius: 3, 
-          boxShadow: '0 20px 60px rgba(0,0,0,0.3)' 
+          boxShadow: isDark ? 'none' : '0 20px 60px rgba(0,0,0,0.1)',
+          border: isDark ? '1px solid rgba(255, 255, 255, 0.15)' : 'none',
+          backgroundImage: 'none',
+          bgcolor: isDark ? '#2a2a2a' : '#FFFFFF',
         } 
       }}
       slotProps={{
         backdrop: {
           sx: {
-            background: 'linear-gradient(135deg, #2563eb 0%, #1e40af 50%, #0f172a 100%)',
+            background: isDark 
+              ? 'radial-gradient(circle at center, #2b221d 0%, #26201e 50%, #2b211d 100%)' 
+              : 'radial-gradient(circle at center, rgb(255, 237, 242) 0%, #FFFFFF 100%)',
           }
         }
       }}

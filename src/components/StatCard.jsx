@@ -8,7 +8,8 @@ const StatCard = ({ icon, label, value, color = 'primary.main', subtitle, onClic
       sx={{
         height: '100%',
         borderRadius: 2,
-        boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05)',
+        border: '1px solid #D8D8D8',
         transition: 'transform 0.2s, box-shadow 0.2s',
         cursor: onClick ? 'pointer' : 'default',
         '&:hover': {

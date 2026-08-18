@@ -929,7 +929,7 @@ const Datasets = () => {
                                   <TableCell
                                     sx={{
                                       fontWeight: 700,
-                                      bgcolor: "grey.100",
+                                      bgcolor: (theme) => theme.palette.mode === 'light' ? 'grey.100' : 'background.default',
                                     }}
                                   >
                                     Status
@@ -937,7 +937,7 @@ const Datasets = () => {
                                   <TableCell
                                     sx={{
                                       fontWeight: 700,
-                                      bgcolor: "grey.100",
+                                      bgcolor: (theme) => theme.palette.mode === 'light' ? 'grey.100' : 'background.default',
                                     }}
                                   >
                                     Run Start
@@ -945,7 +945,7 @@ const Datasets = () => {
                                   <TableCell
                                     sx={{
                                       fontWeight: 700,
-                                      bgcolor: "grey.100",
+                                      bgcolor: (theme) => theme.palette.mode === 'light' ? 'grey.100' : 'background.default',
                                     }}
                                   >
                                     Duration
@@ -953,7 +953,7 @@ const Datasets = () => {
                                   <TableCell
                                     sx={{
                                       fontWeight: 700,
-                                      bgcolor: "grey.100",
+                                      bgcolor: (theme) => theme.palette.mode === 'light' ? 'grey.100' : 'background.default',
                                     }}
                                   >
                                     Reason/Solution
