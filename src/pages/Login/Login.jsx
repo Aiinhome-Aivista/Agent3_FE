@@ -5,7 +5,7 @@ import {
 } from '@mui/material';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
-import ShieldIcon from '@mui/icons-material/Shield';
+
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { login, clearError } from '../../redux/slices/authSlice';
@@ -75,7 +75,7 @@ const Login = ({ open = true, onClose, onSuccess }) => {
               alignItems: 'center', justifyContent: 'center',
             }}
           >
-            <ShieldIcon sx={{ color: '#fff', fontSize: 36 }} />
+            <img src="/favicon.svg" alt="Logo" width="36" height="36" />
           </Box>
           <Typography variant="h5" sx={{ fontWeight: 700 }}>DQ Sentinel</Typography>
           <Typography variant="body2" color="text.secondary" align="center">

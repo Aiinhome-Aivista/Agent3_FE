@@ -13,7 +13,7 @@ import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import SettingsIcon from '@mui/icons-material/Settings';
 import LogoutIcon from '@mui/icons-material/Logout';
-import ShieldIcon from '@mui/icons-material/Shield';
+
 import DescriptionIcon from '@mui/icons-material/Description';
 import RuleIcon from '@mui/icons-material/Rule';
 import { logout } from '../redux/slices/authSlice';
@@ -58,7 +58,7 @@ const Sidebar = () => {
     >
       <Toolbar sx={{ px: 2 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <ShieldIcon sx={{ color: 'primary.main' }} />
+          <img src="/favicon.svg" alt="Logo" width="24" height="24" />
           <Typography variant="h6" sx={{ fontWeight: 700 }}>
             DQ Sentinel
           </Typography>

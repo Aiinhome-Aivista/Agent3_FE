@@ -285,7 +285,7 @@ const Datasets = () => {
         open={drawerOpen}
         onClose={closeProfile}
         PaperProps={{
-          sx: { width: { xs: "100%", md: 720 }, bgcolor: "#ffffff", display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" },
+          sx: { width: { xs: "100%", md: 720 }, bgcolor: "background.paper", display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" },
         }}
       >
         <Box
@@ -297,7 +297,7 @@ const Datasets = () => {
             alignItems: "center",
             borderBottom: "1px solid",
             borderColor: "divider",
-            bgcolor: "#ffffff",
+            bgcolor: "background.paper",
           }}
         >
           <Typography variant="h6" sx={{ fontWeight: 700 }}>
@@ -429,10 +429,10 @@ const Datasets = () => {
                         <Box
                           sx={{
                             p: 1.5,
-                            bgcolor: "error.50",
+                            bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(211, 47, 47, 0.1)' : "error.50",
                             borderRadius: 1,
                             border: "1px solid",
-                            borderColor: "error.200",
+                            borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(211, 47, 47, 0.3)' : "error.200",
                           }}
                         >
                           <ul style={{ margin: 0, paddingLeft: "1.2rem", color: "#d32f2f" }}>
@@ -476,10 +476,10 @@ const Datasets = () => {
                       <Box
                         sx={{
                           p: 1.5,
-                          bgcolor: "#e8f5e9",
+                          bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(46, 125, 50, 0.1)' : "#e8f5e9",
                           borderRadius: 1,
                           border: "1px solid",
-                          borderColor: "#a5d6a7",
+                          borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(76, 175, 80, 0.3)' : "#a5d6a7",
                         }}
                       >
                         <ul style={{ margin: 0, paddingLeft: "1.2rem" }}>
@@ -595,7 +595,7 @@ const Datasets = () => {
                         color="text.secondary"
                         sx={{
                           p: 2,
-                          bgcolor: "grey.50",
+                          bgcolor: (theme) => theme.palette.mode === 'light' ? 'grey.50' : 'background.default',
                           borderRadius: 1,
                           border: "1px solid",
                           borderColor: "divider",
@@ -626,7 +626,7 @@ const Datasets = () => {
                         sx={{
                           mb: 2,
                           p: 1.5,
-                          bgcolor: "grey.50",
+                          bgcolor: (theme) => theme.palette.mode === 'light' ? 'grey.50' : 'background.default',
                           borderRadius: 1,
                           border: "1px border-left",
                           borderLeft: "4px solid",
@@ -650,7 +650,7 @@ const Datasets = () => {
                         sx={{
                           mb: 2,
                           p: 1.5,
-                          bgcolor: "grey.50",
+                          bgcolor: (theme) => theme.palette.mode === 'light' ? 'grey.50' : 'background.default',
                           borderRadius: 1,
                           border: "1px solid",
                           borderColor: "divider",
@@ -687,7 +687,7 @@ const Datasets = () => {
                         sx={{ mb: 2, boxShadow: "none" }}
                       >
                         <Table size="small">
-                          <TableHead sx={{ bgcolor: "grey.50" }}>
+                          <TableHead sx={{ bgcolor: (theme) => theme.palette.mode === 'light' ? 'grey.50' : 'background.default' }}>
                             <TableRow>
                               <TableCell sx={{ fontWeight: 700 }}>
                                 Property
@@ -809,7 +809,7 @@ const Datasets = () => {
 
                             return (
                               <Box key={tidx} sx={{ mb: 2 }}>
-                                <Paper variant="outlined" sx={{ p: 2, bgcolor: 'grey.50' }}>
+                                <Paper variant="outlined" sx={{ p: 2, bgcolor: (theme) => theme.palette.mode === 'light' ? 'grey.50' : 'background.default' }}>
                                   <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1.5 }}>
                                     <Box>
                                       <Typography variant="body2" sx={{ fontWeight: 700, color: 'primary.main' }}>
@@ -822,7 +822,7 @@ const Datasets = () => {
                                     <Chip
                                       label={`${table.column_count || table.columns?.length || 0} Columns`}
                                       size="small"
-                                      sx={{ fontWeight: 600, bgcolor: 'white' }}
+                                      sx={{ fontWeight: 600, bgcolor: (theme) => theme.palette.mode === 'light' ? 'white' : 'background.paper' }}
                                     />
                                   </Stack>
 
@@ -830,9 +830,9 @@ const Datasets = () => {
                                     <Table size="small" stickyHeader>
                                       <TableHead>
                                         <TableRow>
-                                          <TableCell sx={{ fontWeight: 700, bgcolor: 'white', fontSize: '0.75rem' }}>Column Name</TableCell>
-                                          <TableCell sx={{ fontWeight: 700, bgcolor: 'white', fontSize: '0.75rem' }}>Data Type</TableCell>
-                                          <TableCell sx={{ fontWeight: 700, bgcolor: 'white', fontSize: '0.75rem' }}>Keys</TableCell>
+                                          <TableCell sx={{ fontWeight: 700, bgcolor: (theme) => theme.palette.mode === 'light' ? 'white' : 'background.default', fontSize: '0.75rem' }}>Column Name</TableCell>
+                                          <TableCell sx={{ fontWeight: 700, bgcolor: (theme) => theme.palette.mode === 'light' ? 'white' : 'background.default', fontSize: '0.75rem' }}>Data Type</TableCell>
+                                          <TableCell sx={{ fontWeight: 700, bgcolor: (theme) => theme.palette.mode === 'light' ? 'white' : 'background.default', fontSize: '0.75rem' }}>Keys</TableCell>
                                         </TableRow>
                                       </TableHead>
                                       <TableBody>
@@ -884,7 +884,7 @@ const Datasets = () => {
                                             label={`${f.column} ➔ ${f.ref_table}(${f.ref_column})`}
                                             size="small"
                                             variant="outlined"
-                                            sx={{ fontSize: '0.65rem', bgcolor: 'white' }}
+                                            sx={{ fontSize: '0.65rem', bgcolor: (theme) => theme.palette.mode === 'light' ? 'white' : 'background.paper' }}
                                           />
                                         ))}
                                       </Stack>
@@ -1056,7 +1056,7 @@ const Datasets = () => {
                           <Box
                             sx={{
                               p: 2,
-                              bgcolor: "grey.50",
+                              bgcolor: (theme) => theme.palette.mode === 'light' ? 'grey.50' : 'background.default',
                               borderRadius: 1,
                               border: "1px solid",
                               borderColor: "divider",
@@ -1075,7 +1075,7 @@ const Datasets = () => {
                                     label={`${act.name} (${act.type})`}
                                     size="small"
                                     variant="outlined"
-                                    sx={{ bgcolor: "white" }}
+                                    sx={{ bgcolor: (theme) => theme.palette.mode === 'light' ? 'white' : 'background.paper' }}
                                   />
                                 ),
                               )}
@@ -1096,7 +1096,7 @@ const Datasets = () => {
                           color="text.secondary"
                           sx={{
                             p: 2,
-                            bgcolor: "grey.50",
+                            bgcolor: (theme) => theme.palette.mode === 'light' ? 'grey.50' : 'background.default',
                             borderRadius: 1,
                             border: "1px solid",
                             borderColor: "divider",
@@ -1120,7 +1120,7 @@ const Datasets = () => {
                           color="text.secondary"
                           sx={{
                             p: 2,
-                            bgcolor: "grey.50",
+                            bgcolor: (theme) => theme.palette.mode === 'light' ? 'grey.50' : 'background.default',
                             borderRadius: 1,
                             border: "1px solid",
                             borderColor: "divider",
@@ -1145,7 +1145,7 @@ const Datasets = () => {
                             color="text.secondary"
                             sx={{
                               p: 2,
-                              bgcolor: "grey.50",
+                              bgcolor: (theme) => theme.palette.mode === 'light' ? 'grey.50' : 'background.default',
                               borderRadius: 1,
                               border: "1px solid",
                               borderColor: "divider",

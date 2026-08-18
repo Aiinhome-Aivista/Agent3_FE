@@ -4,7 +4,7 @@ import {
 } from '@mui/material';
 import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import ShieldIcon from '@mui/icons-material/Shield';
+
 import HubIcon from '@mui/icons-material/Hub';
 import MonitorHeartIcon from '@mui/icons-material/MonitorHeart';
 import PsychologyIcon from '@mui/icons-material/Psychology';
@@ -145,7 +145,7 @@ const Landing = () => {
                 <Container maxWidth="lg">
                     <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ py: 1.5 }}>
                         <Stack direction="row" alignItems="center" spacing={1}>
-                            <ShieldIcon sx={{ color: 'primary.main' }} />
+                            <img src="/favicon.svg" alt="Logo" width="24" height="24" />
                             <Typography variant="h6" sx={{ fontWeight: 700 }}>DQ Sentinel</Typography>
                         </Stack>
                         <Stack direction="row" spacing={1} alignItems="center">
@@ -346,7 +346,7 @@ const Landing = () => {
                 <Container maxWidth="lg">
                     <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems="center" spacing={2}>
                         <Stack direction="row" alignItems="center" spacing={1}>
-                            <ShieldIcon sx={{ color: 'primary.main', fontSize: 20 }} />
+                            <img src="/favicon.svg" alt="Logo" width="20" height="20" />
                             <Typography variant="body2" color="text.secondary">
                                 DQ Sentinel · AI-powered data quality, governance &amp; observability
                             </Typography>
