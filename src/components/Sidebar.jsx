@@ -51,8 +51,9 @@ const Sidebar = () => {
         '& .MuiDrawer-paper': {
           width: drawerWidth,
           boxSizing: 'border-box',
-          borderRight: '1px solid',
-          borderColor: 'divider',
+          backgroundColor: '#383838',
+          color: '#e0e0e0',
+          borderRight: 'none',
         },
       }}
     >
@@ -64,7 +65,7 @@ const Sidebar = () => {
           </Typography>
         </Box>
       </Toolbar>
-      <Divider />
+      <Divider sx={{ borderColor: '#4a4a4a' }} />
       <Box sx={{ overflow: 'auto', flex: 1 }}>
         <List sx={{ px: 1 }}>
           {items.map((item) => {
@@ -79,14 +80,15 @@ const Sidebar = () => {
                   sx={{
                     borderRadius: 1.5,
                     '&.Mui-selected': {
-                      bgcolor: 'primary.main',
-                      color: 'primary.contrastText',
-                      '& .MuiListItemIcon-root': { color: 'primary.contrastText' },
-                      '&:hover': { bgcolor: 'primary.dark' },
+                      backgroundColor: '#ff5722 !important',
+                      color: '#fff',
+                      '& .MuiListItemIcon-root': { color: '#fff' },
+                      '&:hover': { backgroundColor: '#e64a19 !important' },
                     },
+                    '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.08)' },
                   }}
                 >
-                  <ListItemIcon sx={{ minWidth: 36, color: selected ? 'inherit' : 'text.secondary' }}>
+                  <ListItemIcon sx={{ minWidth: 36, color: selected ? 'inherit' : '#aaa' }}>
                     {item.icon}
                   </ListItemIcon>
                   <ListItemText primary={item.label} primaryTypographyProps={{ fontSize: 14, fontWeight: selected ? 600 : 500 }} />
@@ -96,11 +98,14 @@ const Sidebar = () => {
           })}
         </List>
       </Box>
-      <Divider />
+      <Divider sx={{ borderColor: '#4a4a4a' }} />
       <List sx={{ px: 1 }}>
         <ListItem disablePadding>
-          <ListItemButton onClick={handleLogout} sx={{ borderRadius: 1.5 }}>
-            <ListItemIcon sx={{ minWidth: 36 }}>
+          <ListItemButton onClick={handleLogout} sx={{ 
+            borderRadius: 1.5,
+            '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.08)' },
+          }}>
+            <ListItemIcon sx={{ minWidth: 36, color: '#aaa' }}>
               <LogoutIcon />
             </ListItemIcon>
             <ListItemText primary="Logout" primaryTypographyProps={{ fontSize: 14 }} />
